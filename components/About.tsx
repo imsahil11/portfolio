@@ -11,8 +11,8 @@ const statementText = "I build things that actually work. Full stack on the web 
 
 const stats = [
   { value: 3, suffix: '+', label: 'Years Coding', icon: '{}' },
-  { value: 4, suffix: '', label: 'Languages', icon: '</>' },
-  { value: 2, suffix: '', label: 'Minors', icon: '[]' },
+  { value: 7, suffix: '', label: 'Languages', icon: '</>' },
+  { value: 4, suffix: '+', label: 'Projects Shipped', icon: '⚡' },
   { value: null, label: 'Lines Written', icon: '∞', isInfinity: true },
 ]
 
