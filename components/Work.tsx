@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { motion, AnimatePresence, useMotionValue, useSpring } from 'framer-motion'
+import { motion, AnimatePresence, useMotionValue, useSpring, useInView } from 'framer-motion'
 import { ArrowUpRight } from 'lucide-react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
@@ -52,46 +52,19 @@ function ProjectRow({ project, index }: { project: typeof projects[0]; index: nu
   const [isExpanded, setIsExpanded] = useState(false)
   const [isTouchDevice, setIsTouchDevice] = useState(false)
   const rowRef = useRef<HTMLDivElement>(null)
+  
+  // Spring values for floating preview
   const imageX = useMotionValue(0)
   const imageY = useMotionValue(0)
   const springX = useSpring(imageX, { stiffness: 150, damping: 20 })
   const springY = useSpring(imageY, { stiffness: 150, damping: 20 })
 
+  // Center-screen detection for mobile auto-glow
+  const isCentered = useInView(rowRef, { margin: '-35% 0px -35% 0px' })
+
   useEffect(() => {
     setIsTouchDevice(window.matchMedia('(pointer: coarse)').matches)
   }, [])
-
-  useEffect(() => {
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    if (prefersReducedMotion || !rowRef.current) return
-
-    const isMobile = window.matchMedia('(pointer: coarse)').matches
-
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        rowRef.current,
-        { 
-          clipPath: isMobile ? 'none' : 'inset(100% 0 0 0)',
-          y: isMobile ? 30 : 0,
-          opacity: 0,
-        },
-        {
-          clipPath: isMobile ? 'none' : 'inset(0% 0 0 0)',
-          y: 0,
-          opacity: 1,
-          duration: isMobile ? 0.6 : 1,
-          ease: 'power3.out',
-          scrollTrigger: {
-            trigger: rowRef.current,
-            start: 'top 85%',
-          },
-          delay: isMobile ? 0 : index * 0.15,
-        }
-      )
-    }, rowRef)
-
-    return () => ctx.revert()
-  }, [index])
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!rowRef.current || isTouchDevice) return
@@ -103,19 +76,35 @@ function ProjectRow({ project, index }: { project: typeof projects[0]; index: nu
   const handleTap = (e: React.MouseEvent | React.TouchEvent) => {
     if (!isTouchDevice) return
     e.preventDefault()
-    setIsExpanded(prev => !prev)
+    setIsExpanded(!isExpanded)
   }
 
-  const isActive = isTouchDevice ? isExpanded : isHovered
+  const isActive = isTouchDevice ? (isExpanded || isCentered) : isHovered
 
   return (
-    <div
+    <motion.div
       ref={rowRef}
       className="block relative overflow-hidden group"
       style={{
         borderBottom: '1px solid var(--border)',
-        clipPath: 'inset(100% 0 0 0)',
-        opacity: 0,
+        transformOrigin: 'top center',
+        perspective: '1000px',
+      }}
+      initial={{ 
+        opacity: 0, 
+        y: 40,
+        rotateX: isTouchDevice ? 15 : 0 
+      }}
+      whileInView={{ 
+        opacity: 1, 
+        y: 0,
+        rotateX: 0
+      }}
+      viewport={{ once: true, margin: '-50px' }}
+      transition={{ 
+        duration: 0.8, 
+        ease: [0.76, 0, 0.24, 1],
+        delay: isTouchDevice ? 0 : index * 0.1 
       }}
       onMouseEnter={() => !isTouchDevice && setIsHovered(true)}
       onMouseLeave={() => !isTouchDevice && setIsHovered(false)}
@@ -403,38 +392,12 @@ function ProjectRow({ project, index }: { project: typeof projects[0]; index: nu
           </motion.a>
         </div>
       </div>
-    </div>
+    </motion.div>
   )
 }
 
 export default function Work() {
   const sectionRef = useRef<HTMLElement>(null)
-  const headerRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    if (prefersReducedMotion) return
-
-    const ctx = gsap.context(() => {
-      if (headerRef.current) {
-        gsap.fromTo(
-          headerRef.current,
-          { opacity: 0, y: 30 },
-          {
-            opacity: 1,
-            y: 0,
-            duration: 0.8,
-            scrollTrigger: {
-              trigger: headerRef.current,
-              start: 'top 85%',
-            },
-          }
-        )
-      }
-    }, sectionRef)
-
-    return () => ctx.revert()
-  }, [])
 
   return (
     <section
@@ -453,10 +416,13 @@ export default function Work() {
       </div>
 
       {/* Section Header */}
-      <div
-        ref={headerRef}
+      <motion.div
         className="relative z-10 flex flex-col lg:flex-row justify-between items-start lg:items-end pb-6 md:pb-8 mb-0 gap-3 md:gap-4"
-        style={{ borderBottom: '1px solid var(--border)', opacity: 0 }}
+        style={{ borderBottom: '1px solid var(--border)' }}
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: '-50px' }}
+        transition={{ duration: 0.8, ease: [0.76, 0, 0.24, 1] }}
       >
         <div>
           <span
@@ -491,7 +457,7 @@ export default function Work() {
         >
           ({projects.length.toString().padStart(2, '0')} Projects)
         </span>
-      </div>
+      </motion.div>
 
       {/* Project Rows */}
       <div className="relative z-10">

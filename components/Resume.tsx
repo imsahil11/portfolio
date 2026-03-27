@@ -248,20 +248,7 @@ function RecordSleeve({
   useEffect(() => {
     const isTouch = window.matchMedia('(pointer: coarse)').matches
     setIsTouchDevice(isTouch)
-
-    if (!isTouch) return
-
-    let t = 0
-    let raf = 0
-    const autoTilt = () => {
-      t += 0.015
-      mouseX.set(Math.sin(t) * 0.2)
-      mouseY.set(Math.cos(t * 0.7) * 0.15)
-      raf = requestAnimationFrame(autoTilt)
-    }
-    raf = requestAnimationFrame(autoTilt)
-    return () => cancelAnimationFrame(raf)
-  }, [mouseX, mouseY])
+  }, [])
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (isTouchDevice || !sleeveRef.current) return
@@ -609,42 +596,13 @@ export default function Resume() {
   const [isPlaying, setIsPlaying] = useState(true)
   const [playingTrack, setPlayingTrack] = useState(0)
   const isInView = useInView(sectionRef, { once: true, margin: '-100px' })
+  const isCompositionInView = useInView(compositionRef, { once: true, margin: '-20%' })
 
   useEffect(() => {
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    if (prefersReducedMotion) return
-
-    const ctx = gsap.context(() => {
-      if (headerRef.current) {
-        gsap.fromTo(
-          headerRef.current,
-          { opacity: 0, y: 40 },
-          {
-            opacity: 1,
-            y: 0,
-            duration: 1,
-            ease: 'power3.out',
-            scrollTrigger: {
-              trigger: headerRef.current,
-              start: 'top 85%',
-            },
-          }
-        )
-      }
-
-      if (compositionRef.current) {
-        ScrollTrigger.create({
-          trigger: compositionRef.current,
-          start: 'top 70%',
-          onEnter: () => {
-            setTimeout(() => setIsSlid(true), 400)
-          },
-        })
-      }
-    }, sectionRef)
-
-    return () => ctx.revert()
-  }, [])
+    if (isCompositionInView) {
+      setTimeout(() => setIsSlid(true), 400)
+    }
+  }, [isCompositionInView])
 
   const handleDownload = () => {
     window.open(RESUME_DRIVE_URL, '_blank', 'noopener,noreferrer')
@@ -697,7 +655,13 @@ export default function Resume() {
 
       {/* Section Header */}
       <div className="px-5 md:px-6 lg:px-[120px] mb-10 md:mb-20 relative z-10">
-        <div ref={headerRef} style={{ opacity: 0 }}>
+        <motion.div
+          ref={headerRef}
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-50px' }}
+          transition={{ duration: 1, ease: [0.76, 0, 0.24, 1] }}
+        >
           <span
             style={{
               fontFamily: 'var(--font-mono)',
@@ -733,7 +697,7 @@ export default function Resume() {
               Drop the needle and explore, or take the full album home.
             </p>
           </div>
-        </div>
+        </motion.div>
       </div>
 
       {/* Main Composition — Vinyl + Sleeve */}

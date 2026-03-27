@@ -184,6 +184,11 @@ export default function About() {
   const sectionRef = useRef<HTMLElement>(null)
   const wordsRef = useRef<HTMLParagraphElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  const [isTouchDevice, setIsTouchDevice] = useState(false)
+  
+  useEffect(() => {
+    setIsTouchDevice(window.matchMedia('(pointer: coarse)').matches)
+  }, [])
   
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -295,29 +300,47 @@ export default function About() {
             "
           </span>
           
-          <p
-            ref={wordsRef}
-            className="relative z-10"
-            style={{
-              fontFamily: 'var(--font-body)',
-              fontSize: 'clamp(20px, 3vw, 40px)',
-              lineHeight: 1.5,
-              color: 'var(--text)',
-            }}
-          >
-            {words.map((word, i) => (
-              <span
-                key={i}
-                className="word inline-block mr-[0.25em]"
-                style={{
-                  opacity: 0.08,
-                  willChange: 'opacity, transform',
-                }}
-              >
-                {word}
-              </span>
-            ))}
-          </p>
+          {isTouchDevice ? (
+            <motion.p
+              className="relative z-10"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-50px' }}
+              transition={{ duration: 0.8, ease: [0.76, 0, 0.24, 1] }}
+              style={{
+                fontFamily: 'var(--font-body)',
+                fontSize: 'clamp(20px, 3vw, 40px)',
+                lineHeight: 1.5,
+                color: 'var(--text)',
+              }}
+            >
+              {statementText}
+            </motion.p>
+          ) : (
+            <p
+              ref={wordsRef}
+              className="relative z-10"
+              style={{
+                fontFamily: 'var(--font-body)',
+                fontSize: 'clamp(20px, 3vw, 40px)',
+                lineHeight: 1.5,
+                color: 'var(--text)',
+              }}
+            >
+              {words.map((word, i) => (
+                <span
+                  key={i}
+                  className="word inline-block mr-[0.25em]"
+                  style={{
+                    opacity: 0.08,
+                    willChange: 'opacity, transform',
+                  }}
+                >
+                  {word}
+                </span>
+              ))}
+            </p>
+          )}
         </div>
 
         {/* Divider with animation */}

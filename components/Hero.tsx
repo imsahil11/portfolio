@@ -209,6 +209,15 @@ export default function Hero({ isLoaded }: { isLoaded: boolean }) {
           x: parallax.x,
           y: parallax.y,
         }}
+        animate={{
+          scale: [1, 1.1, 1],
+          opacity: [0.8, 1, 0.8],
+        }}
+        transition={{
+          duration: 4,
+          repeat: Infinity,
+          ease: 'easeInOut',
+        }}
       />
 
       {/* Top Row */}

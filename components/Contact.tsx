@@ -5,10 +5,6 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { motion, useInView } from 'framer-motion'
-import { gsap } from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
-
-gsap.registerPlugin(ScrollTrigger)
 
 const contactSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -173,7 +169,6 @@ export default function Contact() {
   const [hoveredLink, setHoveredLink] = useState<number | null>(null)
   const [isTouchDevice, setIsTouchDevice] = useState(false)
   const sectionRef = useRef<HTMLElement>(null)
-  const headingRef = useRef<HTMLDivElement>(null)
   const isInView = useInView(sectionRef, { once: true, margin: '-100px' })
 
   useEffect(() => {
@@ -187,50 +182,6 @@ export default function Contact() {
   } = useForm<ContactFormData>({
     resolver: zodResolver(contactSchema),
   })
-
-  useEffect(() => {
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    if (prefersReducedMotion || !headingRef.current) return
-
-    const isMobile = window.matchMedia('(pointer: coarse)').matches
-
-    const ctx = gsap.context(() => {
-      const chars = headingRef.current?.querySelectorAll('.char')
-      
-      if (isMobile && chars) {
-        gsap.to(chars, {
-          y: 0,
-          opacity: 1,
-          duration: 0.8,
-          ease: 'power3.out',
-          scrollTrigger: {
-            trigger: headingRef.current,
-            start: 'top 85%',
-          }
-        })
-      } else if (chars) {
-        chars.forEach((char, i) => {
-          gsap.fromTo(
-            char,
-            { y: '100%', opacity: 0 },
-            {
-              y: 0,
-              opacity: 1,
-              duration: 0.6,
-              ease: 'power3.out',
-              scrollTrigger: {
-                trigger: headingRef.current,
-                start: 'top 80%',
-              },
-              delay: i * 0.03,
-            }
-          )
-        })
-      }
-    }, headingRef)
-
-    return () => ctx.revert()
-  }, [])
 
   const onSubmit = async (data: ContactFormData) => {
     console.log('Form submitted:', data)
@@ -272,50 +223,57 @@ export default function Contact() {
         05 — Get In Touch
       </motion.span>
 
-      {/* Heading with character animation */}
-      <div ref={headingRef} className="mb-10 md:mb-16 overflow-hidden">
-        <h2
-          style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: 'clamp(44px, 10vw, 140px)',
-            color: 'var(--text)',
-            lineHeight: 0.95,
-            margin: 0,
-          }}
-        >
-          {headingText.split('').map((char, i) => (
-            <span key={i} className="char inline-block" style={{ opacity: 0 }}>
-              {char === ' ' ? '\u00A0' : char}
-            </span>
-          ))}
-        </h2>
-        <h2
-          style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: 'clamp(44px, 10vw, 140px)',
-            color: 'var(--text)',
-            lineHeight: 0.95,
-            margin: 0,
-          }}
-        >
-          {'SOMETHING'.split('').map((char, i) => (
-            <span key={i} className="char inline-block" style={{ opacity: 0 }}>
-              {char}
-            </span>
-          ))}
-          <motion.span
-            initial={{ scale: 0, rotate: -180 }}
-            animate={isInView ? { scale: 1, rotate: 0 } : { scale: 0, rotate: -180 }}
-            transition={{ delay: 0.8, type: 'spring', stiffness: 200, damping: 15 }}
-            className="inline-block gradient-text"
+      {/* Heading with sliding mask animation */}
+      <div className="mb-10 md:mb-16">
+        <div className="overflow-hidden">
+          <motion.h2
+            initial={{ y: '100%', opacity: isTouchDevice ? 0 : 1 }}
+            whileInView={{ y: 0, opacity: 1 }}
+            viewport={{ once: true, margin: '-50px' }}
+            transition={{ duration: 0.8, ease: [0.76, 0, 0.24, 1] }}
             style={{
               fontFamily: 'var(--font-display)',
               fontSize: 'clamp(44px, 10vw, 140px)',
+              color: 'var(--text)',
+              lineHeight: 0.95,
+              margin: 0,
+            }}
+          >
+            {headingText}
+          </motion.h2>
+        </div>
+        
+        <div className="overflow-hidden flex items-baseline">
+          <motion.h2
+            initial={{ y: '100%', opacity: isTouchDevice ? 0 : 1 }}
+            whileInView={{ y: 0, opacity: 1 }}
+            viewport={{ once: true, margin: '-50px' }}
+            transition={{ duration: 0.8, ease: [0.76, 0, 0.24, 1], delay: 0.1 }}
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: 'clamp(44px, 10vw, 140px)',
+              color: 'var(--text)',
+              lineHeight: 0.95,
+              margin: 0,
+            }}
+          >
+            SOMETHING
+          </motion.h2>
+          <motion.span
+            initial={{ scale: 0, rotate: -180 }}
+            whileInView={{ scale: 1, rotate: 0 }}
+            viewport={{ once: true, margin: '-50px' }}
+            transition={{ delay: 0.6, type: 'spring', stiffness: 200, damping: 15 }}
+            className="inline-block gradient-text ml-2 sm:ml-4"
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: 'clamp(44px, 10vw, 140px)',
+              lineHeight: 0.95,
             }}
           >
             .
           </motion.span>
-        </h2>
+        </div>
       </div>
 
       {/* Two Column Layout */}
