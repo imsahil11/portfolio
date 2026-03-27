@@ -25,12 +25,18 @@ const jetbrainsMono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://sahilyadav.me'),
   title: 'Sahil Yadav — Full Stack & Android Developer',
   description: 'BTech CSE developer specializing in MERN Stack and Android development with Kotlin. Class of 2023.',
+  keywords: ['Sahil Yadav', 'Sahil Yadav portfolio', 'Sahil Yadav developer', 'MERN Stack Developer', 'Android Developer', 'Kotlin', 'Software Engineer'],
+  authors: [{ name: 'Sahil Yadav' }],
+  creator: 'Sahil Yadav',
   openGraph: {
     title: 'Sahil Yadav — Developer Portfolio',
     description: 'MERN Stack · Android · Java DSA · Building things that matter.',
     type: 'website',
+    url: 'https://sahilyadav.me',
+    siteName: 'Sahil Yadav',
   },
 }
 
