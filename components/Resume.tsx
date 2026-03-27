@@ -266,13 +266,14 @@ function RecordSleeve({
   return (
     <motion.div
       ref={sleeveRef}
-      className="relative overflow-hidden"
+      className={`relative ${isTouchDevice ? 'overflow-visible' : 'overflow-hidden'}`}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       style={{
         width: isTouchDevice ? '100%' : 'clamp(280px, 34vw, 420px)',
         maxWidth: isTouchDevice ? '400px' : undefined,
-        aspectRatio: '1',
+        aspectRatio: isTouchDevice && playingTrack !== null ? 'auto' : '1',
+        minHeight: isTouchDevice ? '380px' : undefined,
         backgroundColor: '#141312',
         border: '1px solid rgba(212, 206, 196, 0.08)',
         padding: 'clamp(24px, 3vw, 40px)',
