@@ -104,16 +104,15 @@ function StatCard({ stat, index }: { stat: typeof stats[0]; index: number }) {
         </span>
 
         {/* Value */}
-        <div className="flex items-center justify-center">
+        <div 
+          className="flex items-center justify-center"
+          style={{ height: 'clamp(50px, 8vw, 80px)' }}
+        >
           {stat.isInfinity ? (
             <motion.div
               className="flex justify-center items-center"
               style={{
                 color: 'var(--accent)',
-                fontFamily: 'var(--font-display)',
-                fontSize: 'clamp(40px, 5vw, 72px)',
-                lineHeight: 1,
-                height: '1em'
               }}
               animate={{
                 rotate: isHovered ? 360 : 0,
@@ -125,7 +124,7 @@ function StatCard({ stat, index }: { stat: typeof stats[0]; index: number }) {
                   : { duration: 2, repeat: isTouchDevice ? Infinity : 0, repeatDelay: 3 }
               }
             >
-              <InfinityIcon size="1em" strokeWidth={1.5} />
+              <InfinityIcon size="clamp(40px, 5vw, 72px)" width="clamp(40px, 5vw, 72px)" height="clamp(40px, 5vw, 72px)" strokeWidth={1.5} />
             </motion.div>
           ) : (
             <span
