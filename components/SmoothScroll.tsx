@@ -20,6 +20,7 @@ export default function SmoothScroll({ children }: { children: React.ReactNode }
     if (prefersReducedMotion) return
 
     const isTouchDevice = window.matchMedia('(pointer: coarse)').matches
+    if (isTouchDevice) return
 
     const lenis = new Lenis({
       duration: isTouchDevice ? 1.0 : 1.4,

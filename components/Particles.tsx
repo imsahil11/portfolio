@@ -48,6 +48,7 @@ export default function Particles() {
     }
 
     const isTouchDevice = window.matchMedia('(pointer: coarse)').matches
+    if (isTouchDevice) return
 
     const initParticles = () => {
       particles.current = []

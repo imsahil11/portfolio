@@ -104,38 +104,37 @@ function StatCard({ stat, index }: { stat: typeof stats[0]; index: number }) {
         </span>
 
         {/* Value */}
-        {stat.isInfinity ? (
-          <motion.div
-            className="flex justify-center items-center"
-            style={{
-              color: 'var(--accent)',
-              height: 'clamp(40px, 5vw, 72px)',
-            }}
-            animate={{
-              rotate: isHovered ? 360 : 0,
-              scale: (isTouchDevice && isInView) ? [1, 1.1, 1] : 1,
-            }}
-            transition={
-              isHovered 
-                ? { duration: 1.5, ease: 'easeInOut' }
-                : { duration: 2, repeat: isTouchDevice ? Infinity : 0, repeatDelay: 3 }
-            }
-          >
-            <InfinityIcon size={64} strokeWidth={1.5} />
-          </motion.div>
-        ) : (
-          <span
-            style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: 'clamp(40px, 5vw, 72px)',
-              color: 'var(--text)',
-              lineHeight: 1,
-              display: 'block',
-            }}
-          >
-            <Counter value={stat.value!} suffix={stat.suffix} />
-          </span>
-        )}
+        <div className="flex items-center justify-center" style={{ height: 'clamp(40px, 5vw, 72px)' }}>
+          {stat.isInfinity ? (
+            <motion.div
+              className="flex justify-center items-center w-full h-full"
+              style={{ color: 'var(--accent)' }}
+              animate={{
+                rotate: isHovered ? 360 : 0,
+                scale: (isTouchDevice && isInView) ? [1, 1.1, 1] : 1,
+              }}
+              transition={
+                isHovered 
+                  ? { duration: 1.5, ease: 'easeInOut' }
+                  : { duration: 2, repeat: isTouchDevice ? Infinity : 0, repeatDelay: 3 }
+              }
+            >
+              <InfinityIcon size={64} strokeWidth={1.5} />
+            </motion.div>
+          ) : (
+            <span
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: 'clamp(40px, 5vw, 72px)',
+                color: 'var(--text)',
+                lineHeight: 1,
+                display: 'block',
+              }}
+            >
+              <Counter value={stat.value!} suffix={stat.suffix} />
+            </span>
+          )}
+        </div>
         
         {/* Label */}
         <span
