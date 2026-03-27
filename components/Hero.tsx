@@ -143,7 +143,7 @@ export default function Hero({ isLoaded }: { isLoaded: boolean }) {
     visible: {
       transition: {
         staggerChildren: 0.15,
-        delayChildren: 1.2,
+        delayChildren: 0.2,
       },
     },
   }
@@ -224,11 +224,11 @@ export default function Hero({ isLoaded }: { isLoaded: boolean }) {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={isLoaded ? { opacity: 1, y: 0 } : { opacity: 0, y: -20 }}
-        transition={{ delay: 1.4, duration: 0.6 }}
-        className="pt-20 flex justify-between items-center"
+        transition={{ delay: 0.4, duration: 0.6 }}
+        className="pt-20 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0"
       >
         <p
-          className="hidden sm:block"
+          className="block"
           style={{
             fontFamily: 'var(--font-mono)',
             fontSize: '11px',
@@ -237,13 +237,13 @@ export default function Hero({ isLoaded }: { isLoaded: boolean }) {
             letterSpacing: '3px',
           }}
         >
-          <ScrambleText text={`SAHIL YADAV — DEVELOPER — ${new Date().getFullYear()}`} delay={1500} />
+          <ScrambleText text={`SAHIL YADAV — DEVELOPER — ${new Date().getFullYear()}`} delay={400} />
         </p>
         <motion.div
           className="flex items-center gap-2"
           initial={{ opacity: 0 }}
           animate={isLoaded ? { opacity: 1 } : { opacity: 0 }}
-          transition={{ delay: 2 }}
+          transition={{ delay: 0.8 }}
         >
           <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: 'var(--accent)' }} />
           <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--muted)' }}>
@@ -253,12 +253,12 @@ export default function Hero({ isLoaded }: { isLoaded: boolean }) {
       </motion.div>
 
       {/* Middle Block */}
-      <div className="relative flex-1 flex items-center z-10">
+      <div className="relative flex-1 flex flex-col justify-center items-start lg:block lg:flex-none z-10 w-full">
         <motion.div
           variants={containerVariants}
           initial="hidden"
           animate={isLoaded ? 'visible' : 'hidden'}
-          className="w-full"
+          className="w-full lg:flex lg:flex-col lg:justify-center lg:h-full"
           style={{ x: parallax.x, y: parallax.y }}
         >
           {/* Headline Line 1 */}
@@ -305,7 +305,7 @@ export default function Hero({ isLoaded }: { isLoaded: boolean }) {
               <motion.span
                 initial={{ opacity: 0, x: -20 }}
                 animate={isLoaded ? { opacity: 1, x: 0 } : { opacity: 0, x: -20 }}
-                transition={{ delay: 2, duration: 0.5 }}
+                transition={{ delay: 0.8, duration: 0.5 }}
                 style={{
                   fontFamily: 'var(--font-display)',
                   fontSize: 'clamp(56px, 12vw, 200px)',
@@ -338,9 +338,9 @@ export default function Hero({ isLoaded }: { isLoaded: boolean }) {
         <motion.div
           initial={{ opacity: 0, x: 40 }}
           animate={isLoaded ? { opacity: 1, x: 0 } : { opacity: 0, x: 40 }}
-          transition={{ delay: 1.8, duration: 0.8 }}
-          className="absolute right-0 top-1/2 -translate-y-1/2 hidden lg:block"
-          style={{ maxWidth: '260px' }}
+          transition={{ delay: 0.6, duration: 0.8 }}
+          className="mt-8 lg:mt-0 lg:absolute lg:right-0 lg:top-1/2 lg:-translate-y-1/2 block"
+          style={{ width: '100%', maxWidth: '260px' }}
         >
           <div
             className="p-6 relative overflow-hidden"
@@ -403,7 +403,7 @@ export default function Hero({ isLoaded }: { isLoaded: boolean }) {
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={isLoaded ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-        transition={{ delay: 1.8, duration: 0.6 }}
+        transition={{ delay: 0.6, duration: 0.6 }}
         className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 py-4 z-10"
         style={{ borderTop: '1px solid var(--border)' }}
       >
