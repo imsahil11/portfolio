@@ -24,7 +24,6 @@ const contactLinks = [
   { platform: 'EMAIL', value: 'im.sahil0111@gmail.com', href: 'mailto:im.sahil0111@gmail.com', icon: '@' },
 ]
 
-// Animated input component
 const AnimatedInput = React.forwardRef<HTMLInputElement, {
   label: string
   error?: string
@@ -41,12 +40,12 @@ const AnimatedInput = React.forwardRef<HTMLInputElement, {
   const [hasValue, setHasValue] = useState(false)
   
   return (
-    <div className="relative mb-8">
+    <div className="relative mb-6 sm:mb-8">
       <motion.label
         className="absolute left-0 pointer-events-none"
         animate={{
           top: isFocused || hasValue ? 0 : 28,
-          fontSize: isFocused || hasValue ? '10px' : '16px',
+          fontSize: isFocused || hasValue ? '10px' : '15px',
           color: isFocused ? 'var(--accent)' : 'var(--muted)',
         }}
         transition={{ duration: 0.2 }}
@@ -69,6 +68,8 @@ const AnimatedInput = React.forwardRef<HTMLInputElement, {
           border: 'none',
           borderBottom: `2px solid ${error ? 'var(--accent)' : isFocused ? 'var(--accent)' : 'var(--border)'}`,
           transition: 'border-color 0.3s ease',
+          borderRadius: 0,
+          WebkitAppearance: 'none',
         }}
         onFocus={() => setIsFocused(true)}
         onBlur={(e) => {
@@ -96,7 +97,6 @@ const AnimatedInput = React.forwardRef<HTMLInputElement, {
   )
 })
 
-// Animated textarea
 const AnimatedTextarea = React.forwardRef<HTMLTextAreaElement, {
   label: string
   error?: string
@@ -111,12 +111,12 @@ const AnimatedTextarea = React.forwardRef<HTMLTextAreaElement, {
   const [hasValue, setHasValue] = useState(false)
   
   return (
-    <div className="relative mb-8">
+    <div className="relative mb-6 sm:mb-8">
       <motion.label
         className="absolute left-0 pointer-events-none"
         animate={{
           top: isFocused || hasValue ? 0 : 28,
-          fontSize: isFocused || hasValue ? '10px' : '16px',
+          fontSize: isFocused || hasValue ? '10px' : '15px',
           color: isFocused ? 'var(--accent)' : 'var(--muted)',
         }}
         transition={{ duration: 0.2 }}
@@ -139,6 +139,8 @@ const AnimatedTextarea = React.forwardRef<HTMLTextAreaElement, {
           border: 'none',
           borderBottom: `2px solid ${error ? 'var(--accent)' : isFocused ? 'var(--accent)' : 'var(--border)'}`,
           transition: 'border-color 0.3s ease',
+          borderRadius: 0,
+          WebkitAppearance: 'none',
         }}
         onFocus={() => setIsFocused(true)}
         onBlur={(e) => {
@@ -169,9 +171,14 @@ const AnimatedTextarea = React.forwardRef<HTMLTextAreaElement, {
 export default function Contact() {
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [hoveredLink, setHoveredLink] = useState<number | null>(null)
+  const [isTouchDevice, setIsTouchDevice] = useState(false)
   const sectionRef = useRef<HTMLElement>(null)
   const headingRef = useRef<HTMLDivElement>(null)
   const isInView = useInView(sectionRef, { once: true, margin: '-100px' })
+
+  useEffect(() => {
+    setIsTouchDevice(window.matchMedia('(pointer: coarse)').matches)
+  }, [])
 
   const {
     register,
@@ -220,7 +227,7 @@ export default function Contact() {
     <section
       id="contact"
       ref={sectionRef}
-      className="relative min-h-screen px-6 lg:px-[120px] py-[120px] overflow-hidden"
+      className="relative min-h-screen px-5 md:px-6 lg:px-[120px] py-16 md:py-[120px] overflow-hidden"
       style={{ backgroundColor: 'var(--bg)' }}
     >
       {/* Decorative background */}
@@ -237,7 +244,7 @@ export default function Contact() {
       <motion.span
         initial={{ opacity: 0, y: 20 }}
         animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-        className="block mb-8"
+        className="block mb-6 sm:mb-8"
         style={{
           fontFamily: 'var(--font-mono)',
           fontSize: '11px',
@@ -250,11 +257,11 @@ export default function Contact() {
       </motion.span>
 
       {/* Heading with character animation */}
-      <div ref={headingRef} className="mb-16 overflow-hidden">
+      <div ref={headingRef} className="mb-10 md:mb-16 overflow-hidden">
         <h2
           style={{
             fontFamily: 'var(--font-display)',
-            fontSize: 'clamp(60px, 10vw, 140px)',
+            fontSize: 'clamp(44px, 10vw, 140px)',
             color: 'var(--text)',
             lineHeight: 0.95,
             margin: 0,
@@ -269,7 +276,7 @@ export default function Contact() {
         <h2
           style={{
             fontFamily: 'var(--font-display)',
-            fontSize: 'clamp(60px, 10vw, 140px)',
+            fontSize: 'clamp(44px, 10vw, 140px)',
             color: 'var(--text)',
             lineHeight: 0.95,
             margin: 0,
@@ -287,7 +294,7 @@ export default function Contact() {
             className="inline-block gradient-text"
             style={{
               fontFamily: 'var(--font-display)',
-              fontSize: 'clamp(60px, 10vw, 140px)',
+              fontSize: 'clamp(44px, 10vw, 140px)',
             }}
           >
             .
@@ -296,7 +303,7 @@ export default function Contact() {
       </div>
 
       {/* Two Column Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-[45%_55%] gap-16 lg:gap-20">
+      <div className="grid grid-cols-1 lg:grid-cols-[45%_55%] gap-10 md:gap-16 lg:gap-20">
         {/* Left Column */}
         <motion.div
           initial={{ opacity: 0, x: -30 }}
@@ -304,10 +311,10 @@ export default function Contact() {
           transition={{ delay: 0.3 }}
         >
           <p
-            className="mb-12"
+            className="mb-8 sm:mb-12"
             style={{
               fontFamily: 'var(--font-body)',
-              fontSize: '18px',
+              fontSize: '16px',
               color: 'var(--muted)',
               lineHeight: 1.8,
             }}
@@ -324,39 +331,42 @@ export default function Contact() {
                 href={link.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center py-5 relative overflow-hidden group"
+                className="flex items-center py-4 sm:py-5 relative overflow-hidden group"
                 style={{ borderBottom: '1px solid var(--border)' }}
-                onMouseEnter={() => setHoveredLink(i)}
-                onMouseLeave={() => setHoveredLink(null)}
+                onMouseEnter={() => !isTouchDevice && setHoveredLink(i)}
+                onMouseLeave={() => !isTouchDevice && setHoveredLink(null)}
                 initial={{ opacity: 0, x: -20 }}
                 animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -20 }}
                 transition={{ delay: 0.4 + i * 0.1 }}
+                whileTap={{ scale: 0.98 }}
               >
-                {/* Hover background */}
-                <motion.div
-                  className="absolute inset-0 origin-left"
-                  style={{ backgroundColor: 'var(--surface)' }}
-                  initial={{ scaleX: 0 }}
-                  animate={{ scaleX: hoveredLink === i ? 1 : 0 }}
-                  transition={{ duration: 0.3, ease: [0.76, 0, 0.24, 1] }}
-                />
+                {/* Hover background — desktop only */}
+                {!isTouchDevice && (
+                  <motion.div
+                    className="absolute inset-0 origin-left"
+                    style={{ backgroundColor: 'var(--surface)' }}
+                    initial={{ scaleX: 0 }}
+                    animate={{ scaleX: hoveredLink === i ? 1 : 0 }}
+                    transition={{ duration: 0.3, ease: [0.76, 0, 0.24, 1] }}
+                  />
+                )}
 
-                {/* Icon */}
+                {/* Icon — always accent on mobile */}
                 <span
-                  className="relative z-10 w-10 h-10 flex items-center justify-center mr-4 transition-colors duration-300"
+                  className="relative z-10 w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center mr-3 sm:mr-4 transition-colors duration-300"
                   style={{
                     fontFamily: 'var(--font-mono)',
                     fontSize: '12px',
                     fontWeight: 600,
-                    color: hoveredLink === i ? 'var(--bg)' : 'var(--muted)',
-                    backgroundColor: hoveredLink === i ? 'var(--accent)' : 'transparent',
-                    border: `1px solid ${hoveredLink === i ? 'var(--accent)' : 'var(--border)'}`,
+                    color: isTouchDevice || hoveredLink === i ? 'var(--bg)' : 'var(--muted)',
+                    backgroundColor: isTouchDevice || hoveredLink === i ? 'var(--accent)' : 'transparent',
+                    border: `1px solid ${isTouchDevice || hoveredLink === i ? 'var(--accent)' : 'var(--border)'}`,
                   }}
                 >
                   {link.icon}
                 </span>
 
-                <div className="relative z-10 flex-1">
+                <div className="relative z-10 flex-1 min-w-0">
                   <span
                     className="block"
                     style={{
@@ -369,10 +379,10 @@ export default function Contact() {
                     {link.platform}
                   </span>
                   <span
-                    className="transition-colors duration-300"
+                    className="transition-colors duration-300 block truncate"
                     style={{
                       fontFamily: 'var(--font-body)',
-                      fontSize: '15px',
+                      fontSize: '14px',
                       color: hoveredLink === i ? 'var(--accent)' : 'var(--text)',
                     }}
                   >
@@ -380,13 +390,16 @@ export default function Contact() {
                   </span>
                 </div>
 
-                {/* Arrow */}
+                {/* Arrow — always visible on mobile */}
                 <motion.span
-                  className="relative z-10"
-                  initial={{ x: -10, opacity: 0 }}
-                  animate={{ x: hoveredLink === i ? 0 : -10, opacity: hoveredLink === i ? 1 : 0 }}
+                  className="relative z-10 shrink-0"
+                  initial={isTouchDevice ? { x: 0, opacity: 0.6 } : { x: -10, opacity: 0 }}
+                  animate={isTouchDevice 
+                    ? { x: 0, opacity: 0.6 } 
+                    : { x: hoveredLink === i ? 0 : -10, opacity: hoveredLink === i ? 1 : 0 }
+                  }
                   transition={{ duration: 0.2 }}
-                  style={{ fontSize: '20px', color: 'var(--text)' }}
+                  style={{ fontSize: '18px', color: 'var(--accent)' }}
                 >
                   ↗
                 </motion.span>
@@ -396,7 +409,7 @@ export default function Contact() {
 
           {/* Additional CTA */}
           <motion.div
-            className="mt-12 p-6 relative overflow-hidden"
+            className="mt-8 sm:mt-12 p-5 sm:p-6 relative overflow-hidden"
             style={{
               backgroundColor: 'var(--surface)',
               border: '1px solid var(--border)',
@@ -462,17 +475,17 @@ export default function Contact() {
             <motion.button
               type="submit"
               disabled={isSubmitted}
-              className="group relative w-full h-16 overflow-hidden"
+              className="group relative w-full h-14 sm:h-16 overflow-hidden"
               style={{
                 backgroundColor: 'var(--text)',
                 color: 'var(--bg)',
                 fontFamily: 'var(--font-display)',
-                fontSize: '20px',
+                fontSize: '18px',
                 letterSpacing: '3px',
                 border: 'none',
               }}
               whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
+              whileTap={{ scale: 0.97 }}
             >
               <motion.span
                 className="absolute inset-0 origin-left"

@@ -47,10 +47,12 @@ export default function Particles() {
       initParticles()
     }
 
+    const isTouchDevice = window.matchMedia('(pointer: coarse)').matches
+
     const initParticles = () => {
       particles.current = []
       const density = Math.max(30, Math.floor((width * height) / 18000))
-      const count = Math.min(density, 120)
+      const count = Math.min(density, isTouchDevice ? 40 : 120)
 
       for (let i = 0; i < count; i++) {
         const x = Math.random() * width
@@ -82,8 +84,10 @@ export default function Particles() {
       mouse.current.active = false
     }
 
-    window.addEventListener('mousemove', handleMouseMove)
-    document.addEventListener('mouseleave', handleMouseLeave)
+    if (!isTouchDevice) {
+      window.addEventListener('mousemove', handleMouseMove)
+      document.addEventListener('mouseleave', handleMouseLeave)
+    }
 
     const animate = () => {
       time.current += 1
@@ -193,8 +197,10 @@ export default function Particles() {
 
     return () => {
       window.removeEventListener('resize', resize)
-      window.removeEventListener('mousemove', handleMouseMove)
-      document.removeEventListener('mouseleave', handleMouseLeave)
+      if (!isTouchDevice) {
+        window.removeEventListener('mousemove', handleMouseMove)
+        document.removeEventListener('mouseleave', handleMouseLeave)
+      }
       cancelAnimationFrame(rafId.current)
     }
   }, [])

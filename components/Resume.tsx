@@ -75,15 +75,21 @@ function EqualizerBars({ active }: { active: boolean }) {
 }
 
 function VinylRecord({ isPlaying, isSlid }: { isPlaying: boolean; isSlid: boolean }) {
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    setIsMobile(window.matchMedia('(pointer: coarse)').matches)
+  }, [])
+
   return (
     <motion.div
       className="relative"
       style={{
-        width: 'clamp(260px, 32vw, 400px)',
+        width: 'clamp(200px, 60vw, 400px)',
         aspectRatio: '1',
       }}
       animate={{
-        x: isSlid ? 'clamp(-100px, -12vw, -160px)' : '0px',
+        x: isMobile ? '0px' : (isSlid ? 'clamp(-100px, -12vw, -160px)' : '0px'),
       }}
       transition={{ duration: 1.2, ease: [0.76, 0, 0.24, 1] }}
     >
@@ -231,6 +237,7 @@ function RecordSleeve({
   onTrackClick: (index: number) => void
 }) {
   const sleeveRef = useRef<HTMLDivElement>(null)
+  const [isTouchDevice, setIsTouchDevice] = useState(false)
   const mouseX = useMotionValue(0)
   const mouseY = useMotionValue(0)
   const rotateX = useTransform(mouseY, [-0.5, 0.5], [3, -3])
@@ -238,17 +245,36 @@ function RecordSleeve({
   const springRotateX = useSpring(rotateX, { stiffness: 150, damping: 20 })
   const springRotateY = useSpring(rotateY, { stiffness: 150, damping: 20 })
 
+  useEffect(() => {
+    const isTouch = window.matchMedia('(pointer: coarse)').matches
+    setIsTouchDevice(isTouch)
+
+    if (!isTouch) return
+
+    let t = 0
+    let raf = 0
+    const autoTilt = () => {
+      t += 0.015
+      mouseX.set(Math.sin(t) * 0.2)
+      mouseY.set(Math.cos(t * 0.7) * 0.15)
+      raf = requestAnimationFrame(autoTilt)
+    }
+    raf = requestAnimationFrame(autoTilt)
+    return () => cancelAnimationFrame(raf)
+  }, [mouseX, mouseY])
+
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!sleeveRef.current) return
+    if (isTouchDevice || !sleeveRef.current) return
     const rect = sleeveRef.current.getBoundingClientRect()
     mouseX.set((e.clientX - rect.left) / rect.width - 0.5)
     mouseY.set((e.clientY - rect.top) / rect.height - 0.5)
-  }, [mouseX, mouseY])
+  }, [mouseX, mouseY, isTouchDevice])
 
   const handleMouseLeave = useCallback(() => {
+    if (isTouchDevice) return
     mouseX.set(0)
     mouseY.set(0)
-  }, [mouseX, mouseY])
+  }, [mouseX, mouseY, isTouchDevice])
 
   return (
     <motion.div
@@ -257,7 +283,8 @@ function RecordSleeve({
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       style={{
-        width: 'clamp(280px, 34vw, 420px)',
+        width: isTouchDevice ? '100%' : 'clamp(280px, 34vw, 420px)',
+        maxWidth: isTouchDevice ? '400px' : undefined,
         aspectRatio: '1',
         backgroundColor: '#141312',
         border: '1px solid rgba(212, 206, 196, 0.08)',
@@ -640,7 +667,7 @@ export default function Resume() {
     <section
       id="resume"
       ref={sectionRef}
-      className="relative py-[140px] overflow-hidden"
+      className="relative py-16 md:py-[140px] overflow-hidden"
       style={{ backgroundColor: 'var(--bg-dark)' }}
     >
       {/* Background grid */}
@@ -669,7 +696,7 @@ export default function Resume() {
       />
 
       {/* Section Header */}
-      <div className="px-6 lg:px-[120px] mb-20 relative z-10">
+      <div className="px-5 md:px-6 lg:px-[120px] mb-10 md:mb-20 relative z-10">
         <div ref={headerRef} style={{ opacity: 0 }}>
           <span
             style={{
@@ -712,7 +739,7 @@ export default function Resume() {
       {/* Main Composition — Vinyl + Sleeve */}
       <div
         ref={compositionRef}
-        className="relative z-10 px-6 lg:px-[120px] flex flex-col lg:flex-row items-center justify-center"
+        className="relative z-10 px-5 md:px-6 lg:px-[120px] flex flex-col lg:flex-row items-center justify-center gap-6 lg:gap-0"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
@@ -728,7 +755,7 @@ export default function Resume() {
 
         {/* Record Sleeve */}
         <motion.div
-          className="relative z-30 mt-[-40px] lg:mt-0 lg:ml-[-60px]"
+          className="relative z-30 mt-0 lg:ml-[-60px] w-full lg:w-auto flex justify-center lg:block"
           initial={{ opacity: 0, x: 80 }}
           animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: 80 }}
           transition={{ delay: 0.5, duration: 1, ease: [0.76, 0, 0.24, 1] }}
@@ -743,13 +770,13 @@ export default function Resume() {
 
       {/* Controls & CTA Row */}
       <motion.div
-        className="relative z-10 mt-16 px-6 lg:px-[120px]"
+        className="relative z-10 mt-10 md:mt-16 px-5 md:px-6 lg:px-[120px]"
         initial={{ opacity: 0, y: 30 }}
         animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
         transition={{ delay: 1, duration: 0.6 }}
       >
         {/* Play controls + buttons */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4 w-full sm:w-auto">
           {/* Play/Pause toggle */}
           <motion.button
             onClick={togglePlayPause}
@@ -815,7 +842,7 @@ export default function Resume() {
                 transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
               />
               <div
-                className="relative flex items-center gap-3 px-8 py-4"
+                className="relative flex items-center justify-center gap-3 px-6 sm:px-8 py-4"
                 style={{ backgroundColor: 'var(--bg-dark)' }}
               >
                 <div
@@ -848,7 +875,7 @@ export default function Resume() {
           {/* View Button — secondary */}
           <button
             onClick={handleView}
-            className="group relative flex items-center gap-3 px-8 py-4 overflow-hidden"
+            className="group relative flex items-center justify-center gap-3 px-6 sm:px-8 py-4 overflow-hidden"
             style={{
               border: '1px solid rgba(245, 240, 232, 0.12)',
               backgroundColor: 'transparent',

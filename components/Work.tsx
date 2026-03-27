@@ -49,11 +49,17 @@ const projects = [
 
 function ProjectRow({ project, index }: { project: typeof projects[0]; index: number }) {
   const [isHovered, setIsHovered] = useState(false)
-  const rowRef = useRef<HTMLAnchorElement>(null)
+  const [isExpanded, setIsExpanded] = useState(false)
+  const [isTouchDevice, setIsTouchDevice] = useState(false)
+  const rowRef = useRef<HTMLDivElement>(null)
   const imageX = useMotionValue(0)
   const imageY = useMotionValue(0)
   const springX = useSpring(imageX, { stiffness: 150, damping: 20 })
   const springY = useSpring(imageY, { stiffness: 150, damping: 20 })
+
+  useEffect(() => {
+    setIsTouchDevice(window.matchMedia('(pointer: coarse)').matches)
+  }, [])
 
   useEffect(() => {
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -84,47 +90,53 @@ function ProjectRow({ project, index }: { project: typeof projects[0]; index: nu
   }, [index])
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (!rowRef.current) return
+    if (!rowRef.current || isTouchDevice) return
     const rect = rowRef.current.getBoundingClientRect()
     imageX.set(e.clientX - rect.left - 150)
     imageY.set(e.clientY - rect.top - 100)
   }
 
+  const handleTap = (e: React.MouseEvent | React.TouchEvent) => {
+    if (!isTouchDevice) return
+    e.preventDefault()
+    setIsExpanded(prev => !prev)
+  }
+
+  const isActive = isTouchDevice ? isExpanded : isHovered
+
   return (
-    <a
+    <div
       ref={rowRef}
-      href={project.href}
-      target="_blank"
-      rel="noopener noreferrer"
       className="block relative overflow-hidden group"
       style={{
         borderBottom: '1px solid var(--border)',
-        padding: '56px 0',
         clipPath: 'inset(100% 0 0 0)',
         opacity: 0,
       }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseEnter={() => !isTouchDevice && setIsHovered(true)}
+      onMouseLeave={() => !isTouchDevice && setIsHovered(false)}
       onMouseMove={handleMouseMove}
+      onClick={handleTap}
       data-cursor="project"
       data-cursor-text="VIEW"
     >
-      {/* Animated accent line on left */}
+      {/* Animated accent line on left — always visible on mobile */}
       <motion.div
         className="absolute left-0 top-0 bottom-0 w-[3px]"
-        initial={{ scaleY: 0 }}
-        animate={{ scaleY: isHovered ? 1 : 0 }}
+        initial={{ scaleY: isTouchDevice ? 1 : 0 }}
+        animate={{ scaleY: isTouchDevice ? 1 : (isHovered ? 1 : 0) }}
         transition={{ duration: 0.4, ease: [0.76, 0, 0.24, 1] }}
         style={{ 
           backgroundColor: project.color, 
           originY: 0,
-          boxShadow: isHovered ? `0 0 20px ${project.color}40` : 'none',
+          boxShadow: isActive ? `0 0 20px ${project.color}40` : 'none',
+          opacity: isTouchDevice ? 0.6 : 1,
         }}
       />
 
       {/* Hover Background with gradient */}
       <AnimatePresence>
-        {isHovered && (
+        {!isTouchDevice && isHovered && (
           <motion.div
             initial={{ scaleX: 0, opacity: 0 }}
             animate={{ scaleX: 1, opacity: 1 }}
@@ -139,7 +151,7 @@ function ProjectRow({ project, index }: { project: typeof projects[0]; index: nu
         )}
       </AnimatePresence>
 
-      {/* Floating preview card */}
+      {/* Floating preview card — desktop only */}
       <motion.div
         className="absolute pointer-events-none z-20 hidden lg:block"
         style={{ 
@@ -163,7 +175,6 @@ function ProjectRow({ project, index }: { project: typeof projects[0]; index: nu
             border: `1px solid ${project.color}40`,
           }}
         >
-          {/* Animated grid pattern */}
           <div className="absolute inset-0 opacity-10">
             <svg width="100%" height="100%">
               <defs>
@@ -187,7 +198,6 @@ function ProjectRow({ project, index }: { project: typeof projects[0]; index: nu
             {project.number}
           </span>
           
-          {/* Scan line effect */}
           <motion.div
             className="absolute inset-0"
             animate={{ backgroundPosition: ['0% 0%', '0% 100%'] }}
@@ -201,131 +211,195 @@ function ProjectRow({ project, index }: { project: typeof projects[0]; index: nu
       </motion.div>
 
       {/* Row Content */}
-      <div className="relative z-10 grid grid-cols-1 lg:grid-cols-[100px_1fr_180px_60px] gap-4 lg:gap-8 items-start lg:items-center pl-4 lg:pl-8 pr-4 lg:pr-4">
-        {/* Column 1: Number */}
-        <motion.span
-          className="hidden lg:block"
-          style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: '72px',
-            color: 'var(--text)',
-            opacity: 0.05,
-            lineHeight: 1,
-          }}
-          animate={{ 
-            opacity: isHovered ? 0.2 : 0.05,
-            color: isHovered ? project.color : 'var(--text)',
-          }}
-          transition={{ duration: 0.3 }}
-        >
-          {project.number}
-        </motion.span>
-
-        {/* Column 2: Name + Description + Stack */}
-        <div className="overflow-hidden">
-          <motion.h3
+      <div className="relative z-10 py-8 sm:py-10 md:py-14 pl-4 lg:pl-8 pr-4 lg:pr-4">
+        {/* Mobile: number badge + tag row */}
+        <div className="flex items-center gap-3 mb-3 lg:hidden">
+          <span
+            className="px-2 py-0.5"
             style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: 'clamp(48px, 5vw, 72px)',
-              color: 'var(--text)',
-              lineHeight: 1,
-              margin: 0,
+              fontFamily: 'var(--font-mono)',
+              fontSize: '10px',
+              color: project.color,
+              border: `1px solid ${project.color}40`,
+              letterSpacing: '1px',
             }}
-            animate={{ x: isHovered ? 16 : 0 }}
-            transition={{ duration: 0.4, ease: [0.76, 0, 0.24, 1] }}
           >
-            <span className="inline-block relative">
-              {project.name}
-              <motion.span
-                className="absolute -bottom-1 left-0 h-[2px]"
-                style={{ backgroundColor: project.color }}
-                initial={{ width: 0 }}
-                animate={{ width: isHovered ? '100%' : 0 }}
-                transition={{ duration: 0.4, ease: [0.76, 0, 0.24, 1] }}
-              />
-            </span>
-          </motion.h3>
-          
-          <motion.p
-            className="mt-3"
+            {project.number}
+          </span>
+          <span
+            className="flex items-center gap-1.5"
             style={{
-              fontFamily: 'var(--font-body)',
-              fontSize: '15px',
+              fontFamily: 'var(--font-mono)',
+              fontSize: '10px',
               color: 'var(--muted)',
-              maxWidth: '540px',
             }}
-            animate={{ x: isHovered ? 16 : 0, opacity: isHovered ? 1 : 0.8 }}
-            transition={{ duration: 0.4, ease: [0.76, 0, 0.24, 1], delay: 0.05 }}
           >
-            {project.description}
-          </motion.p>
-          
-          <motion.div
-            className="mt-4 flex flex-wrap gap-2"
-            animate={{ x: isHovered ? 16 : 0 }}
-            transition={{ duration: 0.4, ease: [0.76, 0, 0.24, 1], delay: 0.1 }}
-          >
-            {project.stack.split(' · ').map((tech, i) => (
-              <span
-                key={i}
-                className="px-2 py-1"
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '10px',
-                  color: isHovered ? project.color : 'var(--muted)',
-                  border: `1px solid ${isHovered ? project.color + '40' : 'var(--border)'}`,
-                  transition: 'all 0.3s ease',
-                }}
-              >
-                {tech}
-              </span>
-            ))}
-          </motion.div>
+            <span
+              className="w-1.5 h-1.5 rounded-full"
+              style={{ backgroundColor: project.color }}
+            />
+            {project.tag}
+          </span>
         </div>
 
-        {/* Column 3: Tag */}
-        <motion.span
-          className="hidden lg:flex items-center gap-2"
-          style={{
-            fontFamily: 'var(--font-mono)',
-            fontSize: '11px',
-            color: 'var(--muted)',
-          }}
-          animate={{ opacity: isHovered ? 1 : 0.6 }}
-        >
-          <span
-            className="w-2 h-2 rounded-full transition-all duration-300"
-            style={{ 
-              backgroundColor: project.color,
-              boxShadow: isHovered ? `0 0 10px ${project.color}` : 'none',
+        {/* Desktop grid layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-[100px_1fr_180px_60px] gap-2 lg:gap-8 items-start lg:items-center">
+          {/* Column 1: Number — desktop only */}
+          <motion.span
+            className="hidden lg:block"
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: '72px',
+              color: 'var(--text)',
+              opacity: 0.05,
+              lineHeight: 1,
             }}
-          />
-          {project.tag}
-        </motion.span>
-
-        <motion.div
-          className="hidden lg:flex items-center justify-center w-10 h-10 rounded-full flex-shrink-0"
-          style={{
-            border: `1px solid ${isHovered ? project.color + '60' : 'var(--border)'}`,
-            backgroundColor: isHovered ? project.color + '12' : 'transparent',
-            transition: 'all 0.3s ease',
-          }}
-          animate={{ x: isHovered ? 4 : 0, opacity: isHovered ? 1 : 0.4 }}
-          transition={{ duration: 0.3 }}
-        >
-          <motion.div
-            animate={{ rotate: isHovered ? 0 : -45 }}
+            animate={{ 
+              opacity: isHovered ? 0.2 : 0.05,
+              color: isHovered ? project.color : 'var(--text)',
+            }}
             transition={{ duration: 0.3 }}
           >
-            <ArrowUpRight
-              size={18}
-              strokeWidth={2}
-              style={{ color: isHovered ? project.color : 'var(--text)' }}
+            {project.number}
+          </motion.span>
+
+          {/* Column 2: Name + Description + Stack */}
+          <div className="overflow-hidden">
+            <motion.h3
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: 'clamp(36px, 5vw, 72px)',
+                color: 'var(--text)',
+                lineHeight: 1,
+                margin: 0,
+              }}
+              animate={{ x: isHovered && !isTouchDevice ? 16 : 0 }}
+              transition={{ duration: 0.4, ease: [0.76, 0, 0.24, 1] }}
+            >
+              <span className="inline-block relative">
+                {project.name}
+                <motion.span
+                  className="absolute -bottom-1 left-0 h-[2px]"
+                  style={{ backgroundColor: project.color }}
+                  initial={{ width: 0 }}
+                  animate={{ width: isActive ? '100%' : 0 }}
+                  transition={{ duration: 0.4, ease: [0.76, 0, 0.24, 1] }}
+                />
+              </span>
+            </motion.h3>
+            
+            {/* Description — always visible on mobile; fade on desktop */}
+            <motion.p
+              className="mt-2 sm:mt-3"
+              style={{
+                fontFamily: 'var(--font-body)',
+                fontSize: '14px',
+                color: 'var(--muted)',
+                maxWidth: '540px',
+                lineHeight: 1.6,
+              }}
+              animate={{ 
+                x: isHovered && !isTouchDevice ? 16 : 0, 
+                opacity: isTouchDevice ? 1 : (isHovered ? 1 : 0.8),
+              }}
+              transition={{ duration: 0.4, ease: [0.76, 0, 0.24, 1], delay: 0.05 }}
+            >
+              {project.description}
+            </motion.p>
+            
+            {/* Tech tags */}
+            <motion.div
+              className="mt-3 flex flex-wrap gap-1.5 sm:gap-2"
+              animate={{ x: isHovered && !isTouchDevice ? 16 : 0 }}
+              transition={{ duration: 0.4, ease: [0.76, 0, 0.24, 1], delay: 0.1 }}
+            >
+              {project.stack.split(' · ').map((tech, i) => (
+                <span
+                  key={i}
+                  className="px-2 py-1"
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '10px',
+                    color: isActive ? project.color : 'var(--muted)',
+                    border: `1px solid ${isActive ? project.color + '40' : 'var(--border)'}`,
+                    transition: 'all 0.3s ease',
+                  }}
+                >
+                  {tech}
+                </span>
+              ))}
+            </motion.div>
+
+            {/* Mobile: View on GitHub link */}
+            <motion.a
+              href={project.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-4 inline-flex items-center gap-2 lg:hidden"
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '11px',
+                color: project.color,
+                letterSpacing: '1px',
+                textDecoration: 'none',
+              }}
+              whileTap={{ scale: 0.95 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              VIEW PROJECT
+              <ArrowUpRight size={14} strokeWidth={2} />
+            </motion.a>
+          </div>
+
+          {/* Column 3: Tag — desktop only */}
+          <motion.span
+            className="hidden lg:flex items-center gap-2"
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: '11px',
+              color: 'var(--muted)',
+            }}
+            animate={{ opacity: isHovered ? 1 : 0.6 }}
+          >
+            <span
+              className="w-2 h-2 rounded-full transition-all duration-300"
+              style={{ 
+                backgroundColor: project.color,
+                boxShadow: isHovered ? `0 0 10px ${project.color}` : 'none',
+              }}
             />
-          </motion.div>
-        </motion.div>
+            {project.tag}
+          </motion.span>
+
+          {/* Column 4: Arrow — desktop only */}
+          <motion.a
+            href={project.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hidden lg:flex items-center justify-center w-10 h-10 rounded-full flex-shrink-0"
+            style={{
+              border: `1px solid ${isHovered ? project.color + '60' : 'var(--border)'}`,
+              backgroundColor: isHovered ? project.color + '12' : 'transparent',
+              transition: 'all 0.3s ease',
+              textDecoration: 'none',
+            }}
+            animate={{ x: isHovered ? 4 : 0, opacity: isHovered ? 1 : 0.4 }}
+            transition={{ duration: 0.3 }}
+          >
+            <motion.div
+              animate={{ rotate: isHovered ? 0 : -45 }}
+              transition={{ duration: 0.3 }}
+            >
+              <ArrowUpRight
+                size={18}
+                strokeWidth={2}
+                style={{ color: isHovered ? project.color : 'var(--text)' }}
+              />
+            </motion.div>
+          </motion.a>
+        </div>
       </div>
-    </a>
+    </div>
   )
 }
 
@@ -338,7 +412,6 @@ export default function Work() {
     if (prefersReducedMotion) return
 
     const ctx = gsap.context(() => {
-      // Animate section header
       if (headerRef.current) {
         gsap.fromTo(
           headerRef.current,
@@ -363,7 +436,7 @@ export default function Work() {
     <section
       id="work"
       ref={sectionRef}
-      className="relative px-6 lg:px-[120px] py-[140px]"
+      className="relative px-5 md:px-6 lg:px-[120px] py-20 md:py-[140px]"
       style={{ backgroundColor: 'var(--bg)' }}
     >
       {/* Decorative elements */}
@@ -378,7 +451,7 @@ export default function Work() {
       {/* Section Header */}
       <div
         ref={headerRef}
-        className="relative z-10 flex flex-col lg:flex-row justify-between items-start lg:items-end pb-8 mb-0 gap-4"
+        className="relative z-10 flex flex-col lg:flex-row justify-between items-start lg:items-end pb-6 md:pb-8 mb-0 gap-3 md:gap-4"
         style={{ borderBottom: '1px solid var(--border)', opacity: 0 }}
       >
         <div>
@@ -397,7 +470,7 @@ export default function Work() {
             className="mt-2"
             style={{
               fontFamily: 'var(--font-display)',
-              fontSize: 'clamp(48px, 6vw, 80px)',
+              fontSize: 'clamp(40px, 6vw, 80px)',
               color: 'var(--text)',
               lineHeight: 1,
             }}
@@ -425,7 +498,7 @@ export default function Work() {
 
       {/* All Projects — GitHub CTA */}
       <motion.div
-        className="relative z-10 mt-24 flex flex-col items-center"
+        className="relative z-10 mt-16 md:mt-24 flex flex-col items-center"
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         viewport={{ once: true }}
@@ -433,7 +506,7 @@ export default function Work() {
       >
         {/* Decorative line */}
         <motion.div
-          className="mb-10 overflow-hidden"
+          className="mb-8 md:mb-10 overflow-hidden"
           style={{ width: 1, height: 60 }}
           initial={{ scaleY: 0 }}
           whileInView={{ scaleY: 1 }}
@@ -471,7 +544,7 @@ export default function Work() {
 
             {/* Inner content */}
             <div
-              className="relative flex items-center gap-6 px-10 py-5"
+              className="relative flex items-center gap-4 sm:gap-6 px-6 sm:px-10 py-4 sm:py-5"
               style={{ backgroundColor: 'var(--bg)' }}
             >
               {/* Background fill on hover */}
@@ -494,7 +567,7 @@ export default function Work() {
                     className="transition-colors duration-300 group-hover:text-(--bg)"
                     style={{
                       fontFamily: 'var(--font-display)',
-                      fontSize: '18px',
+                      fontSize: 'clamp(14px, 2vw, 18px)',
                       letterSpacing: '2px',
                       color: 'var(--text)',
                       lineHeight: 1,
@@ -512,7 +585,7 @@ export default function Work() {
                   </motion.span>
                 </div>
                 <span
-                  className="transition-colors duration-300 group-hover:text-(--bg)"
+                  className="transition-colors duration-300 group-hover:text-(--bg) hidden sm:block"
                   style={{
                     fontFamily: 'var(--font-mono)',
                     fontSize: '10px',
@@ -525,7 +598,7 @@ export default function Work() {
               </div>
 
               {/* Ping dot */}
-              <div className="relative z-10 ml-2">
+              <div className="relative z-10 ml-2 hidden sm:block">
                 <motion.div
                   style={{
                     width: 6,

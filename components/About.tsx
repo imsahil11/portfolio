@@ -16,7 +16,6 @@ const stats = [
   { value: null, label: 'Lines Written', icon: '∞', isInfinity: true },
 ]
 
-// Animated counter component
 function Counter({ value, suffix = '', duration = 2 }: { value: number; suffix?: string; duration?: number }) {
   const [count, setCount] = useState(0)
   const ref = useRef<HTMLSpanElement>(null)
@@ -33,7 +32,7 @@ function Counter({ value, suffix = '', duration = 2 }: { value: number; suffix?:
     const animate = () => {
       const elapsed = Date.now() - startTime
       const progress = Math.min(elapsed / durationMs, 1)
-      const eased = 1 - Math.pow(1 - progress, 3) // ease out cubic
+      const eased = 1 - Math.pow(1 - progress, 3)
       setCount(Math.round(eased * value))
 
       if (progress < 1) {
@@ -50,12 +49,19 @@ function Counter({ value, suffix = '', duration = 2 }: { value: number; suffix?:
   )
 }
 
-// Stat card component
 function StatCard({ stat, index }: { stat: typeof stats[0]; index: number }) {
   const [isHovered, setIsHovered] = useState(false)
+  const cardRef = useRef<HTMLDivElement>(null)
+  const isInView = useInView(cardRef, { once: true, margin: '-50px' })
+  const [isTouchDevice, setIsTouchDevice] = useState(false)
+
+  useEffect(() => {
+    setIsTouchDevice(window.matchMedia('(pointer: coarse)').matches)
+  }, [])
   
   return (
     <motion.div
+      ref={cardRef}
       className="relative group"
       initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
@@ -63,32 +69,33 @@ function StatCard({ stat, index }: { stat: typeof stats[0]; index: number }) {
       transition={{ delay: index * 0.1, duration: 0.6 }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      whileTap={{ scale: 0.97 }}
     >
       <div
-        className="relative p-8 text-center overflow-hidden"
+        className="relative p-6 sm:p-8 text-center overflow-hidden"
         style={{
           border: '1px solid var(--border)',
           backgroundColor: isHovered ? 'var(--surface)' : 'transparent',
           transition: 'background-color 0.3s ease',
         }}
       >
-        {/* Hover accent line */}
+        {/* Accent top line — visible on scroll-in for touch, on hover for desktop */}
         <motion.div
           className="absolute top-0 left-0 right-0 h-[2px]"
           style={{ backgroundColor: 'var(--accent)' }}
           initial={{ scaleX: 0 }}
-          animate={{ scaleX: isHovered ? 1 : 0 }}
-          transition={{ duration: 0.3 }}
+          animate={{ scaleX: (isTouchDevice && isInView) || isHovered ? 1 : 0 }}
+          transition={{ duration: 0.5, delay: isTouchDevice ? index * 0.15 : 0 }}
         />
         
         {/* Icon */}
         <span
-          className="block mb-4 transition-transform duration-300"
+          className="block mb-3 sm:mb-4 transition-transform duration-300"
           style={{
             fontFamily: 'var(--font-mono)',
             fontSize: '14px',
             color: 'var(--accent)',
-            opacity: isHovered ? 1 : 0.5,
+            opacity: (isTouchDevice && isInView) || isHovered ? 1 : 0.5,
             transform: isHovered ? 'translateY(-2px)' : 'translateY(0)',
           }}
         >
@@ -101,12 +108,19 @@ function StatCard({ stat, index }: { stat: typeof stats[0]; index: number }) {
             className="block"
             style={{
               fontFamily: 'var(--font-display)',
-              fontSize: 'clamp(48px, 6vw, 72px)',
+              fontSize: 'clamp(40px, 5vw, 72px)',
               color: 'var(--accent)',
               lineHeight: 1,
             }}
-            animate={{ rotate: isHovered ? 360 : 0 }}
-            transition={{ duration: 1.5, ease: 'easeInOut' }}
+            animate={{
+              rotate: isHovered ? 360 : 0,
+              scale: (isTouchDevice && isInView) ? [1, 1.1, 1] : 1,
+            }}
+            transition={
+              isHovered 
+                ? { duration: 1.5, ease: 'easeInOut' }
+                : { duration: 2, repeat: isTouchDevice ? Infinity : 0, repeatDelay: 3 }
+            }
           >
             ∞
           </motion.span>
@@ -114,7 +128,7 @@ function StatCard({ stat, index }: { stat: typeof stats[0]; index: number }) {
           <span
             style={{
               fontFamily: 'var(--font-display)',
-              fontSize: 'clamp(48px, 6vw, 72px)',
+              fontSize: 'clamp(40px, 5vw, 72px)',
               color: 'var(--text)',
               lineHeight: 1,
               display: 'block',
@@ -126,24 +140,34 @@ function StatCard({ stat, index }: { stat: typeof stats[0]; index: number }) {
         
         {/* Label */}
         <span
-          className="block mt-3"
+          className="block mt-2 sm:mt-3"
           style={{
             fontFamily: 'var(--font-mono)',
-            fontSize: '11px',
+            fontSize: '10px',
             color: 'var(--muted)',
             textTransform: 'uppercase',
-            letterSpacing: '2px',
+            letterSpacing: '1.5px',
           }}
         >
           {stat.label}
         </span>
 
-        {/* Corner decoration */}
+        {/* Corner decoration — always visible on mobile */}
+        <div
+          className="absolute bottom-2 right-2 transition-opacity duration-300"
+          style={{
+            width: '16px',
+            height: '16px',
+            borderRight: '1px solid var(--accent)',
+            borderBottom: '1px solid var(--accent)',
+            opacity: isTouchDevice ? 0.3 : 0,
+          }}
+        />
         <div
           className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
           style={{
-            width: '20px',
-            height: '20px',
+            width: '16px',
+            height: '16px',
             borderRight: '1px solid var(--accent)',
             borderBottom: '1px solid var(--accent)',
           }}
@@ -170,7 +194,6 @@ export default function About() {
     if (prefersReducedMotion) return
 
     const ctx = gsap.context(() => {
-      // Word reveal animation
       if (wordsRef.current) {
         const words = wordsRef.current.querySelectorAll('.word')
         
@@ -202,7 +225,7 @@ export default function About() {
     <section
       id="about"
       ref={sectionRef}
-      className="relative min-h-screen flex flex-col justify-center px-6 lg:px-[120px] py-[120px] overflow-hidden"
+      className="relative min-h-screen flex flex-col justify-center px-5 md:px-6 lg:px-[120px] py-16 md:py-[120px] overflow-hidden"
       style={{ backgroundColor: 'transparent' }}
     >
       {/* Decorative floating element */}
@@ -221,7 +244,7 @@ export default function About() {
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="mb-16"
+          className="mb-10 md:mb-16"
         >
           <span
             style={{
@@ -238,7 +261,7 @@ export default function About() {
             className="mt-4"
             style={{
               fontFamily: 'var(--font-display)',
-              fontSize: 'clamp(48px, 6vw, 80px)',
+              fontSize: 'clamp(40px, 6vw, 80px)',
               color: 'var(--text)',
               lineHeight: 1,
             }}
@@ -251,10 +274,10 @@ export default function About() {
         <div className="relative">
           {/* Quote mark */}
           <span
-            className="absolute -left-4 lg:-left-12 -top-4"
+            className="absolute -left-2 md:-left-4 lg:-left-12 -top-4"
             style={{
               fontFamily: 'var(--font-display)',
-              fontSize: '120px',
+              fontSize: 'clamp(80px, 12vw, 120px)',
               color: 'var(--accent)',
               opacity: 0.1,
               lineHeight: 1,
@@ -268,7 +291,7 @@ export default function About() {
             className="relative z-10"
             style={{
               fontFamily: 'var(--font-body)',
-              fontSize: 'clamp(24px, 3vw, 40px)',
+              fontSize: 'clamp(20px, 3vw, 40px)',
               lineHeight: 1.5,
               color: 'var(--text)',
             }}
@@ -290,7 +313,7 @@ export default function About() {
 
         {/* Divider with animation */}
         <motion.div
-          className="my-20 h-[1px] relative overflow-hidden"
+          className="my-12 md:my-20 h-[1px] relative overflow-hidden"
           style={{ backgroundColor: 'var(--border)' }}
           initial={{ scaleX: 0 }}
           whileInView={{ scaleX: 1 }}
@@ -307,8 +330,8 @@ export default function About() {
           />
         </motion.div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+        {/* Stats Grid — uniform alignment */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-6">
           {stats.map((stat, i) => (
             <StatCard key={stat.label} stat={stat} index={i} />
           ))}
@@ -316,7 +339,7 @@ export default function About() {
 
         {/* Additional info */}
         <motion.div
-          className="mt-20 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16"
+          className="mt-12 md:mt-20 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -336,7 +359,7 @@ export default function About() {
             <p
               style={{
                 fontFamily: 'var(--font-body)',
-                fontSize: '16px',
+                fontSize: '15px',
                 color: 'var(--muted)',
                 lineHeight: 1.8,
               }}
@@ -360,7 +383,7 @@ export default function About() {
             <p
               style={{
                 fontFamily: 'var(--font-body)',
-                fontSize: '16px',
+                fontSize: '15px',
                 color: 'var(--muted)',
                 lineHeight: 1.8,
               }}

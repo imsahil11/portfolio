@@ -7,16 +7,14 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
 gsap.registerPlugin(ScrollTrigger)
 
-// Floating geometric shapes
 function FloatingShapes() {
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden">
-      {/* Large circle */}
       <motion.div
-        className="absolute w-[300px] h-[300px] rounded-full opacity-[0.03]"
+        className="absolute rounded-full opacity-[0.03] w-[200px] h-[200px] md:w-[300px] md:h-[300px]"
         style={{
           border: '1px solid var(--text)',
-          right: '15%',
+          right: '10%',
           top: '20%',
         }}
         animate={{
@@ -28,12 +26,9 @@ function FloatingShapes() {
           scale: { duration: 8, repeat: Infinity, ease: 'easeInOut' },
         }}
       />
-      
 
-
-      {/* Corner brackets */}
       <motion.div
-        className="absolute top-[15%] left-[8%] opacity-[0.08]"
+        className="absolute top-[15%] left-[8%] opacity-[0.08] hidden md:block"
         animate={{ scale: [1, 1.05, 1] }}
         transition={{ duration: 3, repeat: Infinity }}
       >
@@ -46,7 +41,6 @@ function FloatingShapes() {
   )
 }
 
-// Scramble text effect
 function ScrambleText({ text, delay = 0 }: { text: string; delay?: number }) {
   const [displayText, setDisplayText] = useState(text)
   const [isScrambling, setIsScrambling] = useState(false)
@@ -86,7 +80,6 @@ function ScrambleText({ text, delay = 0 }: { text: string; delay?: number }) {
   )
 }
 
-// Mouse parallax hook
 function useParallax(strength: number = 0.02) {
   const x = useMotionValue(0)
   const y = useMotionValue(0)
@@ -95,6 +88,31 @@ function useParallax(strength: number = 0.02) {
   const springY = useSpring(y, springConfig)
 
   useEffect(() => {
+    const isTouch = window.matchMedia('(pointer: coarse)').matches
+
+    if (isTouch) {
+      const handleOrientation = (e: DeviceOrientationEvent) => {
+        const gamma = e.gamma ?? 0
+        const beta = e.beta ?? 0
+        x.set(gamma * strength * 10)
+        y.set((beta - 45) * strength * 10)
+      }
+
+      if (typeof DeviceOrientationEvent !== 'undefined' &&
+          typeof (DeviceOrientationEvent as unknown as { requestPermission?: () => Promise<string> }).requestPermission === 'function') {
+        const requestFn = (DeviceOrientationEvent as unknown as { requestPermission: () => Promise<string> }).requestPermission
+        requestFn().then((response: string) => {
+          if (response === 'granted') {
+            window.addEventListener('deviceorientation', handleOrientation)
+          }
+        }).catch(() => {})
+      } else {
+        window.addEventListener('deviceorientation', handleOrientation)
+      }
+
+      return () => window.removeEventListener('deviceorientation', handleOrientation)
+    }
+
     const handleMouse = (e: MouseEvent) => {
       const centerX = window.innerWidth / 2
       const centerY = window.innerHeight / 2
@@ -171,7 +189,7 @@ export default function Hero({ isLoaded }: { isLoaded: boolean }) {
   return (
     <section
       ref={heroRef}
-      className="relative h-screen flex flex-col justify-between overflow-hidden px-6 lg:px-[120px] py-8 grid-overlay"
+      className="relative h-screen flex flex-col justify-between overflow-hidden px-5 md:px-6 lg:px-[120px] py-8 grid-overlay"
       style={{ backgroundColor: 'var(--bg)' }}
     >
       <FloatingShapes />
@@ -185,7 +203,7 @@ export default function Hero({ isLoaded }: { isLoaded: boolean }) {
         <span
           style={{
             fontFamily: 'var(--font-display)',
-            fontSize: 'clamp(300px, 35vw, 520px)',
+            fontSize: 'clamp(200px, 35vw, 520px)',
             color: 'var(--text)',
             opacity: 0.025,
             lineHeight: 0.8,
@@ -198,7 +216,7 @@ export default function Hero({ isLoaded }: { isLoaded: boolean }) {
 
       {/* Accent blob */}
       <motion.div
-        className="absolute w-[500px] h-[500px] blob pointer-events-none"
+        className="absolute w-[300px] h-[300px] md:w-[500px] md:h-[500px] blob pointer-events-none"
         style={{
           background: 'radial-gradient(circle, rgba(255, 69, 0, 0.08) 0%, transparent 70%)',
           right: '10%',
@@ -216,6 +234,7 @@ export default function Hero({ isLoaded }: { isLoaded: boolean }) {
         className="pt-20 flex justify-between items-center"
       >
         <p
+          className="hidden sm:block"
           style={{
             fontFamily: 'var(--font-mono)',
             fontSize: '11px',
@@ -227,7 +246,7 @@ export default function Hero({ isLoaded }: { isLoaded: boolean }) {
           <ScrambleText text={`SAHIL YADAV — DEVELOPER — ${new Date().getFullYear()}`} delay={1500} />
         </p>
         <motion.div
-          className="hidden lg:flex items-center gap-2"
+          className="flex items-center gap-2"
           initial={{ opacity: 0 }}
           animate={isLoaded ? { opacity: 1 } : { opacity: 0 }}
           transition={{ delay: 2 }}
@@ -255,7 +274,7 @@ export default function Hero({ isLoaded }: { isLoaded: boolean }) {
                 className="block"
                 style={{
                   fontFamily: 'var(--font-display)',
-                  fontSize: 'clamp(80px, 12vw, 200px)',
+                  fontSize: 'clamp(56px, 12vw, 200px)',
                   color: 'var(--text)',
                   lineHeight: 0.9,
                 }}
@@ -266,13 +285,13 @@ export default function Hero({ isLoaded }: { isLoaded: boolean }) {
           </div>
 
           {/* Headline Line 2 */}
-          <div className="overflow-hidden flex items-baseline gap-4">
-            <motion.h1 variants={lineVariants} className="flex items-baseline">
+          <div className="overflow-hidden flex items-baseline gap-2 md:gap-4">
+            <motion.h1 variants={lineVariants} className="flex items-baseline flex-wrap">
               <span
                 className="gradient-text inline-block"
                 style={{
                   fontFamily: 'var(--font-display)',
-                  fontSize: 'clamp(80px, 12vw, 200px)',
+                  fontSize: 'clamp(56px, 12vw, 200px)',
                   lineHeight: 0.9,
                 }}
               >
@@ -281,7 +300,7 @@ export default function Hero({ isLoaded }: { isLoaded: boolean }) {
               <span
                 style={{
                   fontFamily: 'var(--font-display)',
-                  fontSize: 'clamp(80px, 12vw, 200px)',
+                  fontSize: 'clamp(56px, 12vw, 200px)',
                   color: 'var(--text)',
                   lineHeight: 0.9,
                   marginLeft: '0.1em',
@@ -295,7 +314,7 @@ export default function Hero({ isLoaded }: { isLoaded: boolean }) {
                 transition={{ delay: 2, duration: 0.5 }}
                 style={{
                   fontFamily: 'var(--font-display)',
-                  fontSize: 'clamp(80px, 12vw, 200px)',
+                  fontSize: 'clamp(56px, 12vw, 200px)',
                   color: 'var(--accent)',
                   lineHeight: 0.9,
                 }}
@@ -308,12 +327,13 @@ export default function Hero({ isLoaded }: { isLoaded: boolean }) {
           {/* Subtitle */}
           <motion.p
             variants={fadeUpVariants}
-            className="mt-8 mb-4 lg:hidden"
+            className="mt-6 mb-4 lg:hidden"
             style={{
               fontFamily: 'var(--font-body)',
-              fontSize: '16px',
+              fontSize: '15px',
               color: 'var(--muted)',
-              maxWidth: '400px',
+              maxWidth: '360px',
+              lineHeight: 1.6,
             }}
           >
             Building digital experiences that blend form with function.
@@ -406,6 +426,7 @@ export default function Hero({ isLoaded }: { isLoaded: boolean }) {
               rel="noopener noreferrer"
               className="group flex items-center gap-2"
               whileHover={{ y: -2 }}
+              whileTap={{ scale: 0.95 }}
               data-magnetic
             >
               <span

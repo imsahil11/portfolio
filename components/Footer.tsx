@@ -7,6 +7,9 @@ import { motion, useInView, AnimatePresence } from 'framer-motion'
 function ScrambleText({ text, className, style }: { text: string; className?: string; style?: React.CSSProperties }) {
   const [display, setDisplay] = useState(text)
   const [isHovered, setIsHovered] = useState(false)
+  const ref = useRef<HTMLSpanElement>(null)
+  const isInView = useInView(ref, { once: true, margin: '-50px' })
+  const hasTriggered = useRef(false)
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&'
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -30,11 +33,19 @@ function ScrambleText({ text, className, style }: { text: string; className?: st
   }, [text])
 
   useEffect(() => {
+    if (isInView && !hasTriggered.current) {
+      hasTriggered.current = true
+      scramble()
+    }
+  }, [isInView, scramble])
+
+  useEffect(() => {
     return () => { if (intervalRef.current) clearInterval(intervalRef.current) }
   }, [])
 
   return (
     <span
+      ref={ref}
       className={className}
       style={style}
       onMouseEnter={() => { setIsHovered(true); scramble() }}
@@ -162,7 +173,7 @@ export default function Footer() {
   return (
     <footer
       ref={footerRef}
-      className="relative px-6 lg:px-[120px] py-16 overflow-hidden"
+      className="relative px-5 md:px-6 lg:px-[120px] py-12 md:py-16 overflow-hidden"
       style={{ backgroundColor: 'var(--bg-dark)' }}
     >
       {/* Background ghost text */}
@@ -205,7 +216,7 @@ export default function Footer() {
               text="DROP A SIGNAL"
               style={{
                 fontFamily: 'var(--font-display)',
-                fontSize: 'clamp(48px, 8vw, 100px)',
+                fontSize: 'clamp(36px, 8vw, 100px)',
                 color: 'var(--bg)',
                 lineHeight: 1,
                 cursor: 'pointer',
@@ -296,7 +307,7 @@ export default function Footer() {
         </div>
 
         {/* Center — Navigation */}
-        <div className="flex gap-8">
+        <div className="flex flex-wrap justify-center gap-5 sm:gap-8">
           {['Work', 'About', 'Skills', 'Contact'].map((item, i) => (
             <motion.a
               key={item}
@@ -340,12 +351,13 @@ export default function Footer() {
               href={social.href}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-10 h-10 flex items-center justify-center relative overflow-hidden group"
+              className="w-11 h-11 flex items-center justify-center relative overflow-hidden group"
               style={{ border: '1px solid rgba(245,240,232,0.2)' }}
               initial={{ opacity: 0, scale: 0.8 }}
               animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }}
               transition={{ delay: 0.9 + i * 0.1 }}
               whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.9 }}
             >
               <span
                 className="absolute inset-0 origin-bottom scale-y-0 group-hover:scale-y-100 transition-transform duration-300"

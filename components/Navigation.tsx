@@ -21,13 +21,18 @@ function MagneticButton({ children, className, onClick, style, onMouseEnter, onM
   onMouseLeave?: () => void
 }) {
   const ref = useRef<HTMLButtonElement>(null)
+  const [isTouchDevice, setIsTouchDevice] = useState(false)
   const x = useMotionValue(0)
   const y = useMotionValue(0)
   const springX = useSpring(x, { stiffness: 200, damping: 20 })
   const springY = useSpring(y, { stiffness: 200, damping: 20 })
 
+  useEffect(() => {
+    setIsTouchDevice(window.matchMedia('(pointer: coarse)').matches)
+  }, [])
+
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (!ref.current) return
+    if (isTouchDevice || !ref.current) return
     const rect = ref.current.getBoundingClientRect()
     const centerX = rect.left + rect.width / 2
     const centerY = rect.top + rect.height / 2
@@ -46,10 +51,11 @@ function MagneticButton({ children, className, onClick, style, onMouseEnter, onM
       ref={ref}
       className={className}
       onClick={onClick}
-      style={{ ...style, x: springX, y: springY }}
+      style={{ ...style, x: isTouchDevice ? 0 : springX, y: isTouchDevice ? 0 : springY }}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       onMouseEnter={onMouseEnter}
+      whileTap={isTouchDevice ? { scale: 0.92 } : undefined}
     >
       {children}
     </motion.button>
@@ -408,6 +414,7 @@ export default function Navigation() {
                   onClick={() => scrollToSection(link.href)}
                   className="group text-left py-3 relative"
                   style={{ background: 'none', border: 'none' }}
+                  whileTap={{ scale: 0.97 }}
                 >
                   <div className="flex items-baseline gap-4">
                     <span
@@ -486,7 +493,7 @@ export default function Navigation() {
                       href={social.href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-9 h-9 flex items-center justify-center rounded-full transition-colors duration-200"
+                      className="w-10 h-10 flex items-center justify-center rounded-full transition-colors duration-200"
                       style={{
                         fontFamily: 'var(--font-mono)',
                         fontSize: '10px',

@@ -374,3 +374,32 @@
 .crt-flicker {
   animation: crt-flicker 0.15s infinite;
 }
+
+/* ═══ Mobile-specific overrides ═══ */
+@media (max-width: 768px) {
+  .marquee-left {
+    animation-duration: calc(var(--marquee-duration, 35s) * 1.4);
+  }
+
+  .marquee-right {
+    animation-duration: calc(var(--marquee-duration, 35s) * 1.4);
+  }
+
+  .marquee-wrapper .marquee-left,
+  .marquee-wrapper .marquee-right {
+    animation-play-state: running !important;
+  }
+}
+
+/* Tap glow feedback for touch devices */
+@keyframes tap-glow {
+  0% { box-shadow: 0 0 0 0 rgba(255, 69, 0, 0.4); }
+  70% { box-shadow: 0 0 0 12px rgba(255, 69, 0, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 69, 0, 0); }
+}
+
+/* Auto-spotlight pulse for mobile skills */
+@keyframes skill-spotlight {
+  0%, 100% { text-shadow: none; color: var(--bg); }
+  50% { text-shadow: 0 0 30px rgba(255, 69, 0, 0.5); color: var(--accent); }
+}

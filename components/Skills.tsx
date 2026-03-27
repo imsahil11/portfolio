@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { motion, useScroll, useTransform, useInView } from 'framer-motion'
 
 interface MarqueeProps {
@@ -13,27 +13,50 @@ interface MarqueeProps {
 function Marquee({ items, speed, direction, accentIndex = -1 }: MarqueeProps) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
   const [isPaused, setIsPaused] = useState(false)
+  const [spotlightIndex, setSpotlightIndex] = useState<number | null>(null)
+  const [isTouchDevice, setIsTouchDevice] = useState(false)
+
+  useEffect(() => {
+    const isTouch = window.matchMedia('(pointer: coarse)').matches
+    setIsTouchDevice(isTouch)
+
+    if (!isTouch) return
+
+    const interval = setInterval(() => {
+      setSpotlightIndex(Math.floor(Math.random() * items.length))
+      setTimeout(() => setSpotlightIndex(null), 1500)
+    }, 3500)
+
+    return () => clearInterval(interval)
+  }, [items.length])
 
   const animationClass = direction === 'left' ? 'marquee-left' : 'marquee-right'
 
+  const handleItemTap = useCallback((index: number) => {
+    if (!isTouchDevice) return
+    setHoveredIndex(prev => prev === index ? null : index)
+  }, [isTouchDevice])
+
   return (
     <div
-      className="marquee-wrapper overflow-hidden py-6 relative"
-      onMouseEnter={() => setIsPaused(true)}
+      className="marquee-wrapper overflow-hidden py-4 sm:py-6 relative"
+      onMouseEnter={() => !isTouchDevice && setIsPaused(true)}
       onMouseLeave={() => {
-        setIsPaused(false)
-        setHoveredIndex(null)
+        if (!isTouchDevice) {
+          setIsPaused(false)
+          setHoveredIndex(null)
+        }
       }}
     >
       {/* Gradient masks */}
       <div
-        className="absolute left-0 top-0 bottom-0 w-[100px] z-10 pointer-events-none"
+        className="absolute left-0 top-0 bottom-0 w-[60px] sm:w-[100px] z-10 pointer-events-none"
         style={{
           background: 'linear-gradient(90deg, var(--bg-dark) 0%, transparent 100%)',
         }}
       />
       <div
-        className="absolute right-0 top-0 bottom-0 w-[100px] z-10 pointer-events-none"
+        className="absolute right-0 top-0 bottom-0 w-[60px] sm:w-[100px] z-10 pointer-events-none"
         style={{
           background: 'linear-gradient(270deg, var(--bg-dark) 0%, transparent 100%)',
         }}
@@ -51,18 +74,20 @@ function Marquee({ items, speed, direction, accentIndex = -1 }: MarqueeProps) {
           const actualIndex = i % items.length
           const isAccent = actualIndex === accentIndex
           const isHovered = hoveredIndex === actualIndex
+          const isSpotlit = spotlightIndex === actualIndex
           const isDimmed = hoveredIndex !== null && !isHovered
 
           return (
             <span
               key={i}
               className="flex items-center group"
-              onMouseEnter={() => setHoveredIndex(actualIndex)}
+              onMouseEnter={() => !isTouchDevice && setHoveredIndex(actualIndex)}
+              onClick={() => handleItemTap(actualIndex)}
             >
               <motion.span
                 className="relative px-2"
                 animate={{
-                  scale: isHovered ? 1.1 : 1,
+                  scale: isHovered || isSpotlit ? 1.1 : 1,
                   opacity: isDimmed ? 0.3 : 1,
                 }}
                 transition={{ duration: 0.3 }}
@@ -70,36 +95,36 @@ function Marquee({ items, speed, direction, accentIndex = -1 }: MarqueeProps) {
                 <span
                   style={{
                     fontFamily: 'var(--font-display)',
-                    fontSize: 'clamp(40px, 5vw, 70px)',
-                    color: isAccent || isHovered ? 'var(--accent)' : 'var(--bg)',
+                    fontSize: 'clamp(32px, 5vw, 70px)',
+                    color: isAccent || isHovered || isSpotlit ? 'var(--accent)' : 'var(--bg)',
                     transition: 'color 0.3s ease',
-                    textShadow: isHovered ? '0 0 30px rgba(255, 69, 0, 0.5)' : 'none',
+                    textShadow: isHovered || isSpotlit ? '0 0 30px rgba(255, 69, 0, 0.5)' : 'none',
                   }}
                 >
                   {item.name}
                 </span>
                 
-                {/* Underline on hover */}
+                {/* Underline on hover/spotlight */}
                 <motion.span
                   className="absolute bottom-0 left-2 right-2 h-[2px]"
                   style={{ backgroundColor: 'var(--accent)' }}
                   initial={{ scaleX: 0 }}
-                  animate={{ scaleX: isHovered ? 1 : 0 }}
+                  animate={{ scaleX: isHovered || isSpotlit ? 1 : 0 }}
                   transition={{ duration: 0.3 }}
                 />
               </motion.span>
               
               {/* Separator */}
               <span
-                className="mx-4 lg:mx-8 flex items-center justify-center"
+                className="mx-3 sm:mx-4 lg:mx-8 flex items-center justify-center"
                 style={{
                   color: 'var(--accent)',
-                  fontSize: 'clamp(16px, 2vw, 24px)',
+                  fontSize: 'clamp(14px, 2vw, 24px)',
                   opacity: 0.6,
                 }}
               >
                 <motion.span
-                  animate={{ rotate: isHovered ? 180 : 0 }}
+                  animate={{ rotate: isHovered || isSpotlit ? 180 : 0 }}
                   transition={{ duration: 0.5 }}
                 >
                   ◆
@@ -143,6 +168,7 @@ const row3Items = [
 export default function Skills() {
   const sectionRef = useRef<HTMLElement>(null)
   const isInView = useInView(sectionRef, { once: true, margin: '-100px' })
+  const [isTouchDevice, setIsTouchDevice] = useState(false)
   
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -151,11 +177,15 @@ export default function Skills() {
   
   const backgroundY = useTransform(scrollYProgress, [0, 1], ['0%', '20%'])
 
+  useEffect(() => {
+    setIsTouchDevice(window.matchMedia('(pointer: coarse)').matches)
+  }, [])
+
   return (
     <section
       id="skills"
       ref={sectionRef}
-      className="relative py-[120px] overflow-hidden z-0"
+      className="relative py-16 md:py-[120px] overflow-hidden z-0"
       style={{ backgroundColor: 'var(--bg-dark)' }}
     >
       {/* Animated background grid */}
@@ -192,7 +222,7 @@ export default function Skills() {
       </div>
 
       {/* Section Header */}
-      <div className="px-6 lg:px-[120px] mb-16 relative z-10">
+      <div className="px-5 md:px-6 lg:px-[120px] mb-10 md:mb-16 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
@@ -213,7 +243,7 @@ export default function Skills() {
             <h2
               style={{
                 fontFamily: 'var(--font-display)',
-                fontSize: 'clamp(48px, 6vw, 80px)',
+                fontSize: 'clamp(40px, 6vw, 80px)',
                 color: 'var(--bg)',
                 lineHeight: 1,
               }}
@@ -221,7 +251,7 @@ export default function Skills() {
               TECH STACK
             </h2>
             <p
-              className="mt-4 lg:mt-0 max-w-[400px]"
+              className="mt-3 lg:mt-0 max-w-[400px]"
               style={{
                 fontFamily: 'var(--font-body)',
                 fontSize: '14px',
@@ -229,14 +259,14 @@ export default function Skills() {
                 lineHeight: 1.6,
               }}
             >
-              Technologies I work with daily. Hover to explore.
+              {isTouchDevice ? 'Tap to explore.' : 'Hover to explore.'}
             </p>
           </div>
         </motion.div>
       </div>
 
       {/* Category Labels */}
-      <div className="px-6 lg:px-[120px] mb-4 relative z-10">
+      <div className="px-5 md:px-6 lg:px-[120px] mb-4 relative z-10">
         <motion.span
           initial={{ opacity: 0 }}
           animate={isInView ? { opacity: 1 } : { opacity: 0 }}
@@ -264,7 +294,7 @@ export default function Skills() {
         </motion.div>
 
         {/* Category Label */}
-        <div className="px-6 lg:px-[120px] my-4">
+        <div className="px-5 md:px-6 lg:px-[120px] my-3 md:my-4">
           <motion.span
             initial={{ opacity: 0 }}
             animate={isInView ? { opacity: 1 } : { opacity: 0 }}
@@ -290,7 +320,7 @@ export default function Skills() {
         </motion.div>
 
         {/* Category Label */}
-        <div className="px-6 lg:px-[120px] my-4">
+        <div className="px-5 md:px-6 lg:px-[120px] my-3 md:my-4">
           <motion.span
             initial={{ opacity: 0 }}
             animate={isInView ? { opacity: 1 } : { opacity: 0 }}
