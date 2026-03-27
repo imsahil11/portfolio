@@ -192,25 +192,41 @@ export default function Contact() {
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     if (prefersReducedMotion || !headingRef.current) return
 
+    const isMobile = window.matchMedia('(pointer: coarse)').matches
+
     const ctx = gsap.context(() => {
       const chars = headingRef.current?.querySelectorAll('.char')
-      chars?.forEach((char, i) => {
-        gsap.fromTo(
-          char,
-          { y: '100%', opacity: 0 },
-          {
-            y: 0,
-            opacity: 1,
-            duration: 0.6,
-            ease: 'power3.out',
-            scrollTrigger: {
-              trigger: headingRef.current,
-              start: 'top 80%',
-            },
-            delay: i * 0.03,
+      
+      if (isMobile && chars) {
+        gsap.to(chars, {
+          y: 0,
+          opacity: 1,
+          duration: 0.8,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: headingRef.current,
+            start: 'top 85%',
           }
-        )
-      })
+        })
+      } else if (chars) {
+        chars.forEach((char, i) => {
+          gsap.fromTo(
+            char,
+            { y: '100%', opacity: 0 },
+            {
+              y: 0,
+              opacity: 1,
+              duration: 0.6,
+              ease: 'power3.out',
+              scrollTrigger: {
+                trigger: headingRef.current,
+                start: 'top 80%',
+              },
+              delay: i * 0.03,
+            }
+          )
+        })
+      }
     }, headingRef)
 
     return () => ctx.revert()

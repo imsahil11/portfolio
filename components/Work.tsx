@@ -65,23 +65,27 @@ function ProjectRow({ project, index }: { project: typeof projects[0]; index: nu
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     if (prefersReducedMotion || !rowRef.current) return
 
+    const isMobile = window.matchMedia('(pointer: coarse)').matches
+
     const ctx = gsap.context(() => {
       gsap.fromTo(
         rowRef.current,
         { 
-          clipPath: 'inset(100% 0 0 0)',
+          clipPath: isMobile ? 'none' : 'inset(100% 0 0 0)',
+          y: isMobile ? 30 : 0,
           opacity: 0,
         },
         {
-          clipPath: 'inset(0% 0 0 0)',
+          clipPath: isMobile ? 'none' : 'inset(0% 0 0 0)',
+          y: 0,
           opacity: 1,
-          duration: 1,
+          duration: isMobile ? 0.6 : 1,
           ease: 'power3.out',
           scrollTrigger: {
             trigger: rowRef.current,
             start: 'top 85%',
           },
-          delay: index * 0.15,
+          delay: isMobile ? 0 : index * 0.15,
         }
       )
     }, rowRef)

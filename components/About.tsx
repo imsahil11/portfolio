@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { motion, useInView, useScroll, useTransform } from 'framer-motion'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { Infinity as InfinityIcon } from 'lucide-react'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -13,7 +14,7 @@ const stats = [
   { value: 3, suffix: '+', label: 'Years Coding', icon: '{}' },
   { value: 7, suffix: '', label: 'Languages', icon: '</>' },
   { value: 4, suffix: '+', label: 'Projects Shipped', icon: '⚡' },
-  { value: null, label: 'Lines Written', icon: '∞', isInfinity: true },
+  { value: null, label: 'Lines Written', icon: <InfinityIcon size={14} />, isInfinity: true },
 ]
 
 function Counter({ value, suffix = '', duration = 2 }: { value: number; suffix?: string; duration?: number }) {
@@ -104,13 +105,11 @@ function StatCard({ stat, index }: { stat: typeof stats[0]; index: number }) {
 
         {/* Value */}
         {stat.isInfinity ? (
-          <motion.span
-            className="block"
+          <motion.div
+            className="flex justify-center items-center"
             style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: 'clamp(40px, 5vw, 72px)',
               color: 'var(--accent)',
-              lineHeight: 1,
+              height: 'clamp(40px, 5vw, 72px)',
             }}
             animate={{
               rotate: isHovered ? 360 : 0,
@@ -122,8 +121,8 @@ function StatCard({ stat, index }: { stat: typeof stats[0]; index: number }) {
                 : { duration: 2, repeat: isTouchDevice ? Infinity : 0, repeatDelay: 3 }
             }
           >
-            ∞
-          </motion.span>
+            <InfinityIcon size={64} strokeWidth={1.5} />
+          </motion.div>
         ) : (
           <span
             style={{
@@ -197,15 +196,21 @@ export default function About() {
       if (wordsRef.current) {
         const words = wordsRef.current.querySelectorAll('.word')
         
+        const isMobile = window.matchMedia('(pointer: coarse)').matches
+        
         gsap.fromTo(
           words,
-          { opacity: 0.08, y: 10 },
+          { opacity: isMobile ? 0 : 0.08, y: isMobile ? 20 : 10 },
           {
             opacity: 1,
             y: 0,
-            stagger: 0.02,
+            stagger: isMobile ? 0 : 0.02,
+            duration: isMobile ? 1 : undefined,
             ease: 'power2.out',
-            scrollTrigger: {
+            scrollTrigger: isMobile ? {
+              trigger: wordsRef.current,
+              start: 'top 85%',
+            } : {
               trigger: wordsRef.current,
               start: 'top 70%',
               end: 'bottom 30%',
@@ -243,7 +248,7 @@ export default function About() {
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          viewport={{ once: true, margin: '-50px' }}
           className="mb-10 md:mb-16"
         >
           <span
@@ -342,8 +347,8 @@ export default function About() {
           className="mt-12 md:mt-20 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.3 }}
+          viewport={{ once: true, margin: '-50px' }}
+          transition={{ delay: 0.1, duration: 0.6 }}
         >
           <div>
             <h3

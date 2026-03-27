@@ -91,26 +91,8 @@ function useParallax(strength: number = 0.02) {
     const isTouch = window.matchMedia('(pointer: coarse)').matches
 
     if (isTouch) {
-      const handleOrientation = (e: DeviceOrientationEvent) => {
-        const gamma = e.gamma ?? 0
-        const beta = e.beta ?? 0
-        x.set(gamma * strength * 10)
-        y.set((beta - 45) * strength * 10)
-      }
-
-      if (typeof DeviceOrientationEvent !== 'undefined' &&
-          typeof (DeviceOrientationEvent as unknown as { requestPermission?: () => Promise<string> }).requestPermission === 'function') {
-        const requestFn = (DeviceOrientationEvent as unknown as { requestPermission: () => Promise<string> }).requestPermission
-        requestFn().then((response: string) => {
-          if (response === 'granted') {
-            window.addEventListener('deviceorientation', handleOrientation)
-          }
-        }).catch(() => {})
-      } else {
-        window.addEventListener('deviceorientation', handleOrientation)
-      }
-
-      return () => window.removeEventListener('deviceorientation', handleOrientation)
+      // Disable device orientation parallax on mobile as it causes severe performance and battery drain
+      return
     }
 
     const handleMouse = (e: MouseEvent) => {
@@ -134,6 +116,9 @@ export default function Hero({ isLoaded }: { isLoaded: boolean }) {
 
   useEffect(() => {
     if (!isLoaded) return
+
+    const isTouch = window.matchMedia('(pointer: coarse)').matches
+    if (isTouch) return // Disable scrub on mobile for performance
 
     const ctx = gsap.context(() => {
       if (bgNumberRef.current) {

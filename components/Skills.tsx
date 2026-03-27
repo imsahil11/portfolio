@@ -13,22 +13,12 @@ interface MarqueeProps {
 function Marquee({ items, speed, direction, accentIndex = -1 }: MarqueeProps) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
   const [isPaused, setIsPaused] = useState(false)
-  const [spotlightIndex, setSpotlightIndex] = useState<number | null>(null)
   const [isTouchDevice, setIsTouchDevice] = useState(false)
 
   useEffect(() => {
     const isTouch = window.matchMedia('(pointer: coarse)').matches
     setIsTouchDevice(isTouch)
-
-    if (!isTouch) return
-
-    const interval = setInterval(() => {
-      setSpotlightIndex(Math.floor(Math.random() * items.length))
-      setTimeout(() => setSpotlightIndex(null), 1500)
-    }, 3500)
-
-    return () => clearInterval(interval)
-  }, [items.length])
+  }, [])
 
   const animationClass = direction === 'left' ? 'marquee-left' : 'marquee-right'
 
@@ -74,7 +64,7 @@ function Marquee({ items, speed, direction, accentIndex = -1 }: MarqueeProps) {
           const actualIndex = i % items.length
           const isAccent = actualIndex === accentIndex
           const isHovered = hoveredIndex === actualIndex
-          const isSpotlit = spotlightIndex === actualIndex
+          const isSpotlit = false
           const isDimmed = hoveredIndex !== null && !isHovered
 
           return (
