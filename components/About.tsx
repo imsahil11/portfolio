@@ -63,7 +63,7 @@ function StatCard({ stat, index }: { stat: typeof stats[0]; index: number }) {
   return (
     <motion.div
       ref={cardRef}
-      className="relative group"
+      className="relative group h-full"
       initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
@@ -73,7 +73,7 @@ function StatCard({ stat, index }: { stat: typeof stats[0]; index: number }) {
       whileTap={{ scale: 0.97 }}
     >
       <div
-        className="relative p-6 sm:p-8 text-center overflow-hidden"
+        className="relative p-6 sm:p-8 text-center overflow-hidden h-full flex flex-col justify-center"
         style={{
           border: '1px solid var(--border)',
           backgroundColor: isHovered ? 'var(--surface)' : 'transparent',
