@@ -233,7 +233,7 @@ function RecordSleeve({
   onTrackClick,
 }: {
   isHovered: boolean
-  playingTrack: number
+  playingTrack: number | null
   onTrackClick: (index: number) => void
 }) {
   const sleeveRef = useRef<HTMLDivElement>(null)
@@ -383,8 +383,16 @@ function RecordSleeve({
         {trackList.map((track, i) => {
           const isActive = playingTrack === i
 
+          if (playingTrack !== null && !isActive) return null
+
           return (
-            <div key={track.side}>
+            <motion.div 
+              key={track.side}
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: '-50px' }}
+              transition={{ duration: 0.5, delay: i * 0.1, ease: 'easeOut' }}
+            >
               <motion.button
                 onClick={() => onTrackClick(i)}
                 className="flex items-center gap-3 py-2 w-full text-left"
@@ -525,7 +533,7 @@ function RecordSleeve({
                   </motion.div>
                 )}
               </AnimatePresence>
-            </div>
+            </motion.div>
           )
         })}
       </div>
@@ -593,8 +601,8 @@ export default function Resume() {
   const compositionRef = useRef<HTMLDivElement>(null)
   const [isHovered, setIsHovered] = useState(false)
   const [isSlid, setIsSlid] = useState(false)
-  const [isPlaying, setIsPlaying] = useState(true)
-  const [playingTrack, setPlayingTrack] = useState(0)
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [playingTrack, setPlayingTrack] = useState<number | null>(null)
   const isInView = useInView(sectionRef, { once: true, margin: '-100px' })
   const isCompositionInView = useInView(compositionRef, { once: true, margin: '-20%' })
 
@@ -613,8 +621,13 @@ export default function Resume() {
   }
 
   const handleTrackClick = (index: number) => {
-    setPlayingTrack(index)
-    setIsPlaying(true)
+    if (playingTrack === index) {
+      setPlayingTrack(null)
+      setIsPlaying(false)
+    } else {
+      setPlayingTrack(index)
+      setIsPlaying(true)
+    }
   }
 
   const togglePlayPause = () => {
@@ -898,7 +911,7 @@ export default function Resume() {
               color: 'rgba(245, 240, 232, 0.35)',
             }}
           >
-            {isPlaying ? `NOW PLAYING · ${trackList[playingTrack].side} — ${trackList[playingTrack].title.toUpperCase()}` : 'PAUSED'}
+            {isPlaying && playingTrack !== null ? `NOW PLAYING · ${trackList[playingTrack].side} — ${trackList[playingTrack].title.toUpperCase()}` : 'PAUSED'}
           </span>
         </motion.div>
       </motion.div>

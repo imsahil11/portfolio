@@ -392,7 +392,7 @@ export default function Footer() {
 
       {/* Scroll to top button */}
       <motion.button
-        className="fixed bottom-8 left-8 w-12 h-12 z-40 flex items-center justify-center"
+        className="hidden md:flex fixed bottom-8 left-8 w-12 h-12 z-40 items-center justify-center"
         style={{ backgroundColor: 'var(--accent)', border: 'none' }}
         initial={{ opacity: 0, y: 20 }}
         animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}

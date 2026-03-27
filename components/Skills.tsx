@@ -55,7 +55,7 @@ function Marquee({ items, speed, direction, accentIndex = -1 }: MarqueeProps) {
       <div
         className={`flex whitespace-nowrap ${animationClass}`}
         style={{
-          ['--marquee-duration' as string]: `${speed}s`,
+          ['--marquee-duration' as string]: `${isTouchDevice ? speed * 0.5 : speed}s`,
           animationPlayState: isPaused ? 'paused' : 'running',
           willChange: 'transform',
         }}
