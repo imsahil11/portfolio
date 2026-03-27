@@ -1,6 +1,16 @@
 'use client'
 
+import { useEffect, useState } from 'react'
+
 export default function NoiseOverlay() {
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    setIsMobile(window.matchMedia('(pointer: coarse)').matches)
+  }, [])
+
+  if (isMobile) return null
+
   return (
     <div className="noise-overlay">
       <svg width="100%" height="100%">

@@ -371,6 +371,12 @@ export default function Mascot() {
   const [currentSection, setCurrentSection] = useState('hero')
   const [terminalOpen, setTerminalOpen] = useState(false)
 
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    setIsMobile(window.matchMedia('(pointer: coarse)').matches)
+  }, [])
+
   const messageTimer = useRef<NodeJS.Timeout | null>(null)
   const idleTimer = useRef<NodeJS.Timeout | null>(null)
   const lastSection = useRef('hero')
@@ -385,6 +391,7 @@ export default function Mascot() {
 
   // Blinking
   useEffect(() => {
+    if (isMobile) return
     const blinkLoop = () => {
       const next = 2500 + Math.random() * 4000
       setTimeout(() => {
@@ -513,6 +520,8 @@ export default function Mascot() {
     const timeout = setTimeout(() => y.set(0), 300)
     return () => clearTimeout(timeout)
   }, [currentSection, y])
+
+  if (isMobile) return null
 
   return (
     <motion.div
